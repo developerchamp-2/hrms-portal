@@ -28,7 +28,7 @@ import { ArrowRight, Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Textarea } from "../ui/textarea";
 import { createModule, updateModule } from "@/lib/actions/module-action";
-import { Status } from "@prisma/client";
+import { Status } from "@/app/generated/prisma/enums";
 
 type Props = {
   data?: Module;
@@ -75,7 +75,7 @@ const ModuleForm = ({ data, update = false }: Props) => {
           description: res?.message,
         });
       } else {
-        router.push("/admin/module");
+        router.push("/module");
       }
     });
   };

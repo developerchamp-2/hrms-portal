@@ -47,7 +47,7 @@ export const getUsersColumns = ({
                                 size="icon"
                                 className="bg-orange-500 hover:bg-orange-600"
                             >
-                                <Link href={`/admin/module/edit/${id}`}>
+                                <Link href={`/module/edit/${id}`}>
                                     <EditIcon size={16} />
                                 </Link>
                             </Button>

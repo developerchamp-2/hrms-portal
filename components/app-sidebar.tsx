@@ -250,7 +250,7 @@ const menu = [
     children: [
       {
         name: "User",
-        url: "#",
+        url: "/users",
         icon: (
           <User2Icon
           />
@@ -258,7 +258,7 @@ const menu = [
       },
       {
         name: "Role",
-        url: "#",
+        url: "/roles",
         icon: (
           <UserCog
           />
@@ -266,7 +266,7 @@ const menu = [
       },
       {
         name: "Module",
-        url: "#",
+        url: "/module",
         icon: (
           <LayoutGrid
           />

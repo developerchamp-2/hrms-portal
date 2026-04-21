@@ -13,13 +13,13 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Loader2, ArrowRight } from "lucide-react";
 
 import { z } from "zod";
-import { Status } from "@prisma/client";
 import { createUserSchema, userSchema } from "@/lib/validators";
 
 import { createUser, updateUser } from "@/lib/actions/users";
 import { getRoles } from "@/lib/actions/role";
 import { Role, User } from "@/types";
 import { userDefaultValues } from "@/lib/constants";
+import { Status } from "@/app/generated/prisma/enums";
 
 const UserForm = ({ data, update = false }: { data?: User, update: boolean }) => {
   const router = useRouter();
@@ -59,7 +59,7 @@ const UserForm = ({ data, update = false }: { data?: User, update: boolean }) =>
           description: res?.message,
         });
       } else {
-        router.push("/admin/users");
+        router.push("/users");
       }
     });
   };

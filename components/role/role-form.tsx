@@ -10,7 +10,6 @@ import { Loader2, ArrowRight } from "lucide-react";
 import { roleSchema } from "@/lib/validators";
 import { roleDefaultValues } from "@/lib/constants";
 import { createRole, updateRole } from "@/lib/actions/role";
-import { Status } from "@prisma/client";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -19,6 +18,7 @@ import { Button } from "@/components/ui/button";
 
 import { z } from "zod";
 import { Module } from "@/types";
+import { Status } from "@/app/generated/prisma/enums";
 
 const RoleForm = ({ data, update = false, modules }: { data?: any; update: boolean; modules: Module[] }) => {
 
@@ -54,7 +54,7 @@ const RoleForm = ({ data, update = false, modules }: { data?: any; update: boole
           description: res?.message,
         });
       } else {
-        router.push("/admin/roles");
+        router.push("/roles");
       }
     });
   };

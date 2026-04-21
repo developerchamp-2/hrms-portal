@@ -18,10 +18,14 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar"
 import { ChevronsUpDownIcon, PlusIcon } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation";
 
 export function Switcher({
     menu
 }: any) {
+    const router = useRouter();
+    
     const { isMobile } = useSidebar()
 
     return (
@@ -47,15 +51,16 @@ export function Switcher({
                         side={isMobile ? "bottom" : "right"}
                         sideOffset={6}
                     >
-                        {menu.children.map((team: any, index: any) => (
+                        {menu.children.map((m: any, index: any) => (
                             <DropdownMenuItem
-                                key={team.name}
+                                key={m.name}
                                 className="gap-2 p-2"
+                                 onSelect={() => router.push(m.url)}
                             >
                                 <div className="flex size-6 items-center justify-center rounded-md border">
-                                    {team.icon}
+                                    {m.icon}
                                 </div>
-                                {team.name}
+                                {m.name}
                                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
                             </DropdownMenuItem>
                         ))}
