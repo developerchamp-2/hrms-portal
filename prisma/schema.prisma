@@ -17,6 +17,12 @@ enum Status {
   INACTIVE
 }
 
+enum MovementType {
+  TRANSFER
+  PROMOTION
+  TRANSFER_PROMOTION
+}
+
 model Role {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name      String   @unique
@@ -42,6 +48,8 @@ model User {
   updatedAt DateTime @updatedAt
   roleId    String   @db.Uuid
   role      Role     @relation(fields: [roleId], references: [id])
+
+  employeeProfile     EmployeeProfile?
 }
 
 model JobRole {
@@ -53,6 +61,8 @@ model JobRole {
   status      Status   @default(ACTIVE)
   createdAt   DateTime @default(now()) @db.Timestamp(6)
   updatedAt   DateTime @updatedAt @db.Timestamp(6)
+
+  employeeProfiles EmployeeProfile[]
 }
 
 model Department {
@@ -64,6 +74,8 @@ model Department {
   status      Status   @default(ACTIVE)
   createdAt   DateTime @default(now()) @db.Timestamp(6)
   updatedAt   DateTime @updatedAt @db.Timestamp(6)
+
+  employeeProfiles EmployeeProfile[]
 }
 
 model WorkLocation {
@@ -79,6 +91,77 @@ model WorkLocation {
   status      Status   @default(ACTIVE)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  transfersFrom TransferPromotion[] @relation("TransferFromLocation")
+  transfersTo   TransferPromotion[] @relation("TransferToLocation")
+  employeeProfiles EmployeeProfile[]
+}
+
+model TransferPromotion {
+  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId         String       @db.Uuid
+  movementType       MovementType
+  fromLocationId     String?      @db.Uuid
+  toLocationId       String?      @db.Uuid
+  currentDesignation String?
+  newDesignation     String?
+  effectiveDate      DateTime
+  reason             String
+  remark             String?
+  status             Status       @default(ACTIVE)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  employee     EmployeeProfile @relation(fields: [employeeId], references: [id])
+  fromLocation WorkLocation? @relation("TransferFromLocation", fields: [fromLocationId], references: [id])
+  toLocation   WorkLocation? @relation("TransferToLocation", fields: [toLocationId], references: [id])
+}
+
+model EmployeeDocument {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId       String    @db.Uuid
+  employeeCode     String
+  documentType     String
+  documentNumber   String
+  issueDate        DateTime?
+  expiryDate       DateTime?
+  issuingAuthority String?
+  fileUrl          String?
+  remark           String?
+  status           Status    @default(ACTIVE)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  employee EmployeeProfile @relation(fields: [employeeId], references: [id])
+}
+
+model EmployeeProfile {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId            String?  @unique @db.Uuid
+  employeeName          String
+  employeeCode          String   @unique
+  phone                 String
+  alternatePhone        String?
+  gender                String?
+  dateOfBirth           DateTime?
+  joiningDate           DateTime
+  departmentId          String?  @db.Uuid
+  jobRoleId             String?  @db.Uuid
+  workLocationId        String?  @db.Uuid
+  address               String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  remark                String?
+  status                Status   @default(ACTIVE)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  employee     User?         @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  department   Department?   @relation(fields: [departmentId], references: [id])
+  jobRole      JobRole?      @relation(fields: [jobRoleId], references: [id])
+  workLocation WorkLocation? @relation(fields: [workLocationId], references: [id])
+  employeeDocuments EmployeeDocument[]
+  transferPromotions TransferPromotion[]
 }
 
 model Module {

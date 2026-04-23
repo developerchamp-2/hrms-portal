@@ -192,7 +192,7 @@ const menu = [
     children: [
       {
         name: "Employee profiles",
-        url: "#",
+        url: "/employee-profiles",
         icon: (
           <Users2Icon
           />
@@ -224,7 +224,7 @@ const menu = [
       },
       {
         name: "Employee ID & docs",
-        url: "#",
+        url: "/employee-documents",
         icon: (
           <IdCard
           />
@@ -232,7 +232,7 @@ const menu = [
       },
       {
         name: "Transfer & promotion",
-        url: "#",
+        url: "/transfer-promotion",
         icon: (
           <ArrowRightLeft
           />

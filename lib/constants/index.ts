@@ -1,4 +1,4 @@
-import { Status } from "@/app/generated/prisma/client";
+import { MovementType, Status } from "@/app/generated/prisma/client";
 
 export const APP_NAME =
   process.env.NEXT_APP_APP_NAME ?? "HRMS";
@@ -68,6 +68,54 @@ export const workLocationDefaultValues = {
   state: "",
   country: "",
   postalCode: "",
+  remark: "",
+  status: Status.ACTIVE,
+};
+
+/* ---------------- TRANSFER & PROMOTION ---------------- */
+export const transferPromotionDefaultValues = {
+  employeeId: "",
+  movementType: MovementType.TRANSFER,
+  fromLocationId: "",
+  toLocationId: "",
+  currentDesignation: "",
+  newDesignation: "",
+  effectiveDate: "",
+  reason: "",
+  remark: "",
+  status: Status.ACTIVE,
+};
+
+/* ---------------- EMPLOYEE ID & DOCS ---------------- */
+export const employeeDocumentDefaultValues = {
+  employeeId: "",
+  employeeCode: "",
+  documentType: "",
+  documentNumber: "",
+  issueDate: "",
+  expiryDate: "",
+  issuingAuthority: "",
+  fileUrl: "",
+  remark: "",
+  status: Status.ACTIVE,
+};
+
+/* ---------------- EMPLOYEE PROFILE ---------------- */
+export const employeeProfileDefaultValues = {
+  employeeId: "",
+  employeeName: "",
+  employeeCode: "",
+  phone: "",
+  alternatePhone: "",
+  gender: "",
+  dateOfBirth: "",
+  joiningDate: "",
+  departmentId: "",
+  jobRoleId: "",
+  workLocationId: "",
+  address: "",
+  emergencyContactName: "",
+  emergencyContactPhone: "",
   remark: "",
   status: Status.ACTIVE,
 };
