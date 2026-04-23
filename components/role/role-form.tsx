@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 
 import { z } from "zod";
 import { Module } from "@/types";
-import { Status } from "@/app/generated/prisma/enums";
+import { Status } from "@/app/generated/prisma/client";
 
 const RoleForm = ({ data, update = false, modules }: { data?: any; update: boolean; modules: Module[] }) => {
 

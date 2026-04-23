@@ -1,4 +1,4 @@
-import { Status } from "@/app/generated/prisma/client";
+import { MovementType, Status } from "@/app/generated/prisma/client";
 import { z } from "zod";
 
 /* ---------------- AUTH ---------------- */
@@ -62,6 +62,63 @@ export const workLocationSchema = z.object({
   state: z.string().min(1, "State is required"),
   country: z.string().min(1, "Country is required"),
   postalCode: z.string().optional(),
+  remark: z.string().optional(),
+  status: z.nativeEnum(Status),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
+});
+
+/* ---------------- TRANSFER & PROMOTION ---------------- */
+export const transferPromotionSchema = z.object({
+  id: z.string().optional(),
+  employeeId: z.string().min(1, "Employee is required"),
+  movementType: z.nativeEnum(MovementType),
+  fromLocationId: z.string().optional(),
+  toLocationId: z.string().optional(),
+  currentDesignation: z.string().optional(),
+  newDesignation: z.string().optional(),
+  effectiveDate: z.string().min(1, "Effective date is required"),
+  reason: z.string().min(1, "Reason is required"),
+  remark: z.string().optional(),
+  status: z.nativeEnum(Status),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
+});
+
+/* ---------------- EMPLOYEE ID & DOCS ---------------- */
+export const employeeDocumentSchema = z.object({
+  id: z.string().optional(),
+  employeeId: z.string().min(1, "Employee is required"),
+  employeeCode: z.string().min(1, "Employee ID is required"),
+  documentType: z.string().min(1, "Document type is required"),
+  documentNumber: z.string().min(1, "Document number is required"),
+  issueDate: z.string().optional(),
+  expiryDate: z.string().optional(),
+  issuingAuthority: z.string().optional(),
+  fileUrl: z.string().optional(),
+  remark: z.string().optional(),
+  status: z.nativeEnum(Status),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
+});
+
+/* ---------------- EMPLOYEE PROFILE ---------------- */
+export const employeeProfileSchema = z.object({
+  id: z.string().optional(),
+  employeeId: z.union([z.string().uuid(), z.literal("")]).optional(),
+  employeeName: z.string().trim().min(1, "Employee name is required"),
+  employeeCode: z.string().optional(),
+  phone: z.string().min(1, "Phone is required"),
+  alternatePhone: z.string().optional(),
+  gender: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  joiningDate: z.string().min(1, "Joining date is required"),
+  departmentId: z.string().optional(),
+  jobRoleId: z.string().optional(),
+  workLocationId: z.string().optional(),
+  address: z.string().optional(),
+  emergencyContactName: z.string().optional(),
+  emergencyContactPhone: z.string().optional(),
   remark: z.string().optional(),
   status: z.nativeEnum(Status),
   createdAt: z.string().nullable().optional(),

@@ -28,7 +28,7 @@ import { ArrowRight, Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Textarea } from "../ui/textarea";
 import { createModule, updateModule } from "@/lib/actions/module-action";
-import { Status } from "@/app/generated/prisma/enums";
+import { Status } from "@/app/generated/prisma/client";
 
 type Props = {
   data?: Module;
