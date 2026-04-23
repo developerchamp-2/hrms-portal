@@ -54,6 +54,7 @@ type EmployeeOption = {
 
 const NONE_VALUE = "none";
 const EMPLOYEE_NAME_LIST_ID = "employee-profile-employee-names";
+const EXISTING_PASSWORD_SENTINEL = "__KEEP__";
 
 const getEmployeeName = (employee: EmployeeOption) =>
   `${employee.firstName} ${employee.lastName}`.trim();
@@ -70,14 +71,22 @@ const EmployeeProfileForm = ({ data, update }: Props) => {
 
   const form = useForm<z.infer<typeof employeeProfileSchema>>({
     resolver: zodResolver(employeeProfileSchema),
-    defaultValues: data ?? employeeProfileDefaultValues,
+    defaultValues: data
+      ? {
+          ...data,
+          password: update && data.employeeId ? EXISTING_PASSWORD_SENTINEL : "",
+        }
+      : employeeProfileDefaultValues,
   });
 
   useEffect(() => {
     if (data) {
-      form.reset(data);
+      form.reset({
+        ...data,
+        password: update && data.employeeId ? EXISTING_PASSWORD_SENTINEL : "",
+      });
     }
-  }, [data, form]);
+  }, [data, form, update]);
 
   useEffect(() => {
     getEmployeeProfileOptions().then((options) => {
@@ -178,6 +187,25 @@ const EmployeeProfileForm = ({ data, update }: Props) => {
                     placeholder="Auto generated (emp-001)"
                     readOnly
                     {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="Enter password"
+                    {...field}
+                    value={field.value ?? ""}
                   />
                 </FormControl>
                 <FormMessage />

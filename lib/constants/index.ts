@@ -1,4 +1,8 @@
-import { MovementType, Status } from "@/app/generated/prisma/client";
+import {
+  ExperienceType,
+  MovementType,
+  Status,
+} from "@/app/generated/prisma/client";
 
 export const APP_NAME =
   process.env.NEXT_APP_APP_NAME ?? "HRMS";
@@ -90,12 +94,21 @@ export const transferPromotionDefaultValues = {
 export const employeeDocumentDefaultValues = {
   employeeId: "",
   employeeCode: "",
-  documentType: "",
-  documentNumber: "",
-  issueDate: "",
-  expiryDate: "",
-  issuingAuthority: "",
-  fileUrl: "",
+
+  // ---------------- DOCUMENTS ----------------
+  aadhaarNumber: "",
+  aadhaarFileUrl: "",
+  panNumber: "",
+  panFileUrl: "",
+
+  // ---------------- EDUCATION ----------------
+  educationEntries: [],
+
+  // ---------------- EXPERIENCE ----------------
+  experienceType: ExperienceType.FRESHER,
+  experienceEntries: [],
+
+  // ---------------- COMMON ----------------
   remark: "",
   status: Status.ACTIVE,
 };
@@ -105,6 +118,7 @@ export const employeeProfileDefaultValues = {
   employeeId: "",
   employeeName: "",
   employeeCode: "",
+  password: "",
   phone: "",
   alternatePhone: "",
   gender: "",

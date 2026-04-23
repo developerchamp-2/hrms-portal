@@ -1,4 +1,8 @@
-import { MovementType, Status } from "@/app/generated/prisma/client";
+import {
+  ExperienceType,
+  MovementType,
+  Status,
+} from "@/app/generated/prisma/client";
 import { z } from "zod";
 
 /* ---------------- AUTH ---------------- */
@@ -86,21 +90,107 @@ export const transferPromotionSchema = z.object({
 });
 
 /* ---------------- EMPLOYEE ID & DOCS ---------------- */
-export const employeeDocumentSchema = z.object({
-  id: z.string().optional(),
-  employeeId: z.string().min(1, "Employee is required"),
-  employeeCode: z.string().min(1, "Employee ID is required"),
-  documentType: z.string().min(1, "Document type is required"),
-  documentNumber: z.string().min(1, "Document number is required"),
-  issueDate: z.string().optional(),
-  expiryDate: z.string().optional(),
-  issuingAuthority: z.string().optional(),
-  fileUrl: z.string().optional(),
-  remark: z.string().optional(),
-  status: z.nativeEnum(Status),
-  createdAt: z.string().nullable().optional(),
-  updatedAt: z.string().nullable().optional(),
-});
+export const employeeDocumentSchema = z
+  .object({
+    id: z.string().optional(),
+
+    employeeId: z.string().min(1, "Employee is required"),
+    employeeCode: z.string().min(1, "Employee ID is required"),
+
+    // ---------------- DOCUMENTS ----------------
+    aadhaarNumber: z.string().min(1, "Aadhaar number is required"),
+    aadhaarFileUrl: z.string().optional(),
+
+    panNumber: z.string().min(1, "PAN number is required"),
+    panFileUrl: z.string().optional(),
+
+    // ---------------- EDUCATION ----------------
+    educationEntries: z
+      .array(
+        z.object({
+          degree: z.string().optional(),
+          college: z.string().optional(),
+          year: z.string().optional(),
+          marks: z.coerce.number().optional(),
+          marksheetFileUrl: z.string().optional(),
+        }),
+      )
+      .optional(),
+
+    // ---------------- EXPERIENCE ----------------
+    experienceType: z.nativeEnum(ExperienceType),
+
+    experienceEntries: z
+      .array(
+        z.object({
+          totalExperience: z.string().optional(),
+          previousCompanyName: z.string().optional(),
+          experienceLetterFileUrl: z.string().optional(),
+          salarySlip1FileUrl: z.string().optional(),
+          salarySlip2FileUrl: z.string().optional(),
+          salarySlip3FileUrl: z.string().optional(),
+        }),
+      )
+      .optional(),
+
+    // ---------------- COMMON ----------------
+    remark: z.string().optional(),
+    status: z.nativeEnum(Status),
+    createdAt: z.string().nullable().optional(),
+    updatedAt: z.string().nullable().optional(),
+  })
+  .superRefine((data, ctx) => {
+    // Education validation
+    data.educationEntries?.forEach((entry, index) => {
+      if (!entry.degree?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Degree is required",
+          path: ["educationEntries", index, "degree"],
+        });
+      }
+
+      if (!entry.college?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "College is required",
+          path: ["educationEntries", index, "college"],
+        });
+      }
+    });
+
+    // Experience validation
+    if (data.experienceType !== ExperienceType.EXPERIENCED) {
+      return;
+    }
+
+    if (!data.experienceEntries?.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one experience card is required",
+        path: ["experienceEntries"],
+      });
+      return;
+    }
+
+    data.experienceEntries.forEach((entry, index) => {
+      if (!entry.totalExperience?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Total experience is required",
+          path: ["experienceEntries", index, "totalExperience"],
+        });
+      }
+
+      if (!entry.previousCompanyName?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Previous company name is required",
+          path: ["experienceEntries", index, "previousCompanyName"],
+        });
+      }
+    });
+  });
 
 /* ---------------- EMPLOYEE PROFILE ---------------- */
 export const employeeProfileSchema = z.object({
@@ -108,6 +198,10 @@ export const employeeProfileSchema = z.object({
   employeeId: z.union([z.string().uuid(), z.literal("")]).optional(),
   employeeName: z.string().trim().min(1, "Employee name is required"),
   employeeCode: z.string().optional(),
+  password: z.union([
+    z.string().min(6, "Password should be at least 6 characters long"),
+    z.literal(""),
+  ]).optional(),
   phone: z.string().min(1, "Phone is required"),
   alternatePhone: z.string().optional(),
   gender: z.string().optional(),

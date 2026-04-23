@@ -23,6 +23,11 @@ enum MovementType {
   TRANSFER_PROMOTION
 }
 
+enum ExperienceType {
+  FRESHER
+  EXPERIENCED
+}
+
 model Role {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name      String   @unique
@@ -118,19 +123,28 @@ model TransferPromotion {
 }
 
 model EmployeeDocument {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  employeeId       String    @db.Uuid
-  employeeCode     String
-  documentType     String
-  documentNumber   String
-  issueDate        DateTime?
-  expiryDate       DateTime?
-  issuingAuthority String?
-  fileUrl          String?
-  remark           String?
-  status           Status    @default(ACTIVE)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                 String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId         String         @db.Uuid
+  employeeCode       String
+
+  // ---------------- DOCUMENTS ----------------
+  aadhaarNumber      String
+  aadhaarFileUrl     String?
+  panNumber          String
+  panFileUrl         String?
+
+  // ---------------- EDUCATION (DYNAMIC CARDS) ----------------
+  educationEntries   Json?
+
+  // ---------------- EXPERIENCE ----------------
+  experienceType     ExperienceType @default(FRESHER)
+  experienceEntries  Json?
+
+  // ---------------- COMMON ----------------
+  remark             String?
+  status             Status         @default(ACTIVE)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
   employee EmployeeProfile @relation(fields: [employeeId], references: [id])
 }

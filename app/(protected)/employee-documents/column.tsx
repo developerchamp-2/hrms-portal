@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmployeeDocument } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { EditIcon, ExternalLink, Trash } from "lucide-react";
+import { EditIcon, Trash } from "lucide-react";
 import Link from "next/link";
 
 export const getEmployeeDocumentColumns = ({
@@ -24,35 +24,27 @@ export const getEmployeeDocumentColumns = ({
       header: "Employee ID",
     },
     {
-      accessorKey: "documentType",
-      header: "Document Type",
+      accessorKey: "experienceType",
+      header: "Experience Type",
+      cell: ({ row }) => row.original.experienceType.replaceAll("_", " "),
     },
     {
-      accessorKey: "documentNumber",
-      header: "Document Number",
+      accessorKey: "aadhaarNumber",
+      header: "Aadhaar Number",
     },
     {
-      accessorKey: "expiryDate",
-      header: "Expiry Date",
-      cell: ({ row }) =>
-        row.original.expiryDate
-          ? new Date(row.original.expiryDate).toLocaleDateString("en-GB")
-          : "-",
+      accessorKey: "panNumber",
+      header: "PAN Number",
     },
     {
-      accessorKey: "fileUrl",
-      header: "File",
-      cell: ({ row }) =>
-        row.original.fileUrl ? (
-          <Button asChild size="sm" variant="outline">
-            <Link href={row.original.fileUrl} target="_blank">
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Open
-            </Link>
-          </Button>
-        ) : (
-          "-"
-        ),
+      accessorKey: "graduationCollege",
+      header: "Graduation College",
+      cell: ({ row }) => row.original.graduationCollege || "-",
+    },
+    {
+      accessorKey: "previousCompanyName",
+      header: "Previous Company",
+      cell: ({ row }) => row.original.previousCompanyName || "-",
     },
     {
       accessorKey: "status",
