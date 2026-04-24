@@ -7,7 +7,7 @@ import { z } from "zod";
 
 /* ---------------- AUTH ---------------- */
 export const loginFormSchema = z.object({
-  username: z.string().min(1, "Username is required"),
+  username: z.string().trim().min(1, "Username is required"),
   password: z.string().min(6, "Password should be at least 6 characters long"),
 });
 
@@ -202,6 +202,7 @@ export const employeeProfileSchema = z.object({
     z.string().min(6, "Password should be at least 6 characters long"),
     z.literal(""),
   ]).optional(),
+  companyId: z.string().min(1, "Company is required"),
   phone: z.string().min(1, "Phone is required"),
   alternatePhone: z.string().optional(),
   gender: z.string().optional(),
@@ -236,4 +237,43 @@ export const userSchema = z.object({
 
 export const createUserSchema = userSchema.extend({
   password: z.string().min(1, "Password is required"),
+});
+
+/* ---------------- COMPANY ---------------- */
+export const companySchema = z.object({
+  id: z.string().optional(),
+  companyName: z.string().min(1, "Company name is required"),
+  companyCode: z.string().min(1, "Company code is required"),
+  email: z.union([z.string().email("Invalid email address"), z.literal("")]).optional(),
+  phone: z.string().min(1, "Phone is required"),
+  website: z.string().optional(),
+  address: z.string().optional(),
+  remark: z.string().optional(),
+  status: z.nativeEnum(Status),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
+});
+
+/* ---------------- EMPLOYER ---------------- */
+export const employerSchema = z.object({
+  id: z.string().optional(),
+  companyId: z.string().min(1, "Company is required"),
+  employerName: z.string().min(1, "Employer name is required"),
+  employerCode: z.string().min(1, "Employer code is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(1, "Phone is required"),
+  password: z.union([
+    z.string().min(6, "Password should be at least 6 characters long"),
+    z.literal(""),
+  ]),
+  designation: z.string().optional(),
+  address: z.string().optional(),
+  remark: z.string().optional(),
+  status: z.nativeEnum(Status),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
+});
+
+export const createEmployerSchema = employerSchema.extend({
+  password: z.string().min(6, "Password should be at least 6 characters long"),
 });

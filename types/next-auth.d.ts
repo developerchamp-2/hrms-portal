@@ -1,5 +1,3 @@
-import NextAuth from "next-auth"
-
 declare module "next-auth" {
   interface User {
     id: string
@@ -16,6 +14,8 @@ declare module "next-auth" {
       role: string
       firstName: string
       lastName: string
+      name?: string
+      email?: string
     }
   }
 }

@@ -1,11 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EmployeeProfile } from "@/types";
+import { Company } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { EditIcon, Trash } from "lucide-react";
 import Link from "next/link";
 
-export const getEmployeeProfileColumns = ({
+export const getCompanyColumns = ({
   canEdit,
   canDelete,
   onDelete,
@@ -13,47 +13,29 @@ export const getEmployeeProfileColumns = ({
   canEdit: boolean;
   canDelete: boolean;
   onDelete: (id: string) => void;
-}): ColumnDef<EmployeeProfile>[] => {
-  const columns: ColumnDef<EmployeeProfile>[] = [
+}): ColumnDef<Company>[] => {
+  const columns: ColumnDef<Company>[] = [
     {
-      accessorKey: "employeeName",
-      header: "Employee",
+      accessorKey: "companyName",
+      header: "Company Name",
     },
     {
-      accessorKey: "employeeCode",
-      header: "Employee ID",
+      accessorKey: "companyCode",
+      header: "Company Code",
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+      cell: ({ row }) => row.original.email || "-",
     },
     {
       accessorKey: "phone",
       header: "Phone",
     },
     {
-      accessorKey: "departmentName",
-      header: "Department",
-      cell: ({ row }) => row.original.departmentName || "-",
-    },
-    {
-      accessorKey: "jobRoleName",
-      header: "Job Role",
-      cell: ({ row }) => row.original.jobRoleName || "-",
-    },
-    {
-      accessorKey: "companyName",
-      header: "Company Name",
-      cell: ({ row }) => row.original.companyName || "-",
-    },
-    {
-      accessorKey: "workLocationName",
-      header: "Work Location",
-      cell: ({ row }) => row.original.workLocationName || "-",
-    },
-    {
-      accessorKey: "joiningDate",
-      header: "Joining Date",
-      cell: ({ row }) =>
-        row.original.joiningDate
-          ? new Date(row.original.joiningDate).toLocaleDateString("en-GB")
-          : "-",
+      accessorKey: "website",
+      header: "Website",
+      cell: ({ row }) => row.original.website || "-",
     },
     {
       accessorKey: "status",
@@ -82,7 +64,7 @@ export const getEmployeeProfileColumns = ({
                 size="icon"
                 className="bg-orange-500 hover:bg-orange-600"
               >
-                <Link href={`/employee-profiles/edit/${id}`}>
+                <Link href={`/companies/edit/${id}`}>
                   <EditIcon size={16} />
                 </Link>
               </Button>

@@ -37,16 +37,6 @@ export const getEmployeeDocumentColumns = ({
       header: "PAN Number",
     },
     {
-      accessorKey: "graduationCollege",
-      header: "Graduation College",
-      cell: ({ row }) => row.original.graduationCollege || "-",
-    },
-    {
-      accessorKey: "previousCompanyName",
-      header: "Previous Company",
-      cell: ({ row }) => row.original.previousCompanyName || "-",
-    },
-    {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) =>

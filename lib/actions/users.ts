@@ -52,7 +52,7 @@ export async function createUser(data: User) {
 export async function getUserById(id: string) {
   try {
 
-    let user = await prisma.user.findFirst({
+    const user = await prisma.user.findFirst({
       where: { id }
     })
 
@@ -109,7 +109,7 @@ export async function updateUser(data: User, id: string) {
   }
 }
 
-export async function deleteUser(id: any) {
+export async function deleteUser(id: string) {
   try {
     await prisma.user.delete({
       where: { id }
@@ -144,13 +144,34 @@ export async function loginFormUser(prevState: unknown, formData: FormData) {
   }
 
   const user = result.data;
+  const normalizedUser = {
+    username: user.username.trim(),
+    password: user.password,
+  };
 
   try {
-    await signIn("credentials", {...user, redirect: false });
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        username: normalizedUser.username,
+      },
+      include: {
+        role: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    await signIn("credentials", { ...normalizedUser, redirect: false });
     
     return {
       success: true,
       message: "Login successfully",
+      redirectTo:
+        existingUser?.role?.name?.toLowerCase() === "employee"
+          ? "/employee-dashboard"
+          : "/dashboard",
     };
   } catch (error) {
     if (isRedirectError(error)) {
@@ -190,7 +211,7 @@ export async function getCurrentUser() {
     const session = await auth();
 
     if (session?.user) {
-      let userSession = session.user;
+      const userSession = session.user;
 
       return await getUserById(userSession.id as string)
     }

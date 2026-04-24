@@ -1,11 +1,22 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
+import Link from "next/link"
+import {
+  ArrowRightLeft,
+  Briefcase,
+  Building2,
+  Gauge,
+  IdCard,
+  LayoutGrid,
+  User2Icon,
+  UserCog,
+  Users2Icon,
+} from "lucide-react"
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
+import { Switcher } from "@/components/switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -16,276 +27,149 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { GalleryVerticalEndIcon, AudioLinesIcon, TerminalIcon, TerminalSquareIcon, BotIcon, BookOpenIcon, Settings2Icon, FrameIcon, PieChartIcon, MapIcon, User2Icon, Users2Icon, Building2, Briefcase, IdCard, ArrowRightLeft, UserCog, LayoutGrid } from "lucide-react"
-import { Switcher } from "./switcher"
-import Link from "next/link"
-import Image from "next/image"
-import { useDispatch } from "react-redux";
-import { userLoginRequest } from "@/store/actions/user-actions";
 
-// This is sample data.
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: (
-        <GalleryVerticalEndIcon
-        />
-      ),
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: (
-        <AudioLinesIcon
-        />
-      ),
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: (
-        <TerminalIcon
-        />
-      ),
-      plan: "Free",
-    },
-  ],
-  navMain: [
-    {
-      title: "Playground",
-      url: "#",
-      icon: (
-        <TerminalSquareIcon
-        />
-      ),
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: (
-        <BotIcon
-        />
-      ),
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: (
-        <BookOpenIcon
-        />
-      ),
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: (
-        <Settings2Icon
-        />
-      ),
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: (
-        <FrameIcon
-        />
-      ),
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: (
-        <PieChartIcon
-        />
-      ),
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: (
-        <MapIcon
-        />
-      ),
-    },
-  ],
+type SidebarUser = {
+  name?: string
+  email?: string
+  avatar?: string
 }
 
-const menu = [
+type SidebarRole = string | undefined
+
+type MenuItem = {
+  name: string
+  url: string
+  icon: React.ReactNode
+}
+
+type MenuGroup = {
+  name: string
+  icon: React.ReactNode
+  children: MenuItem[]
+}
+
+const menu: MenuGroup[] = [
+  {
+    name: "Dashboard",
+    icon: <Gauge />,
+    children: [
+      {
+        name: "Overview",
+        url: "/dashboard",
+        icon: <Gauge />,
+      },
+      {
+        name: "Employee Dashboard",
+        url: "/employee-dashboard",
+        icon: <Users2Icon />,
+      },
+    ],
+  },
   {
     name: "Employee Management",
-    url: "#",
-    icon: (
-      <Users2Icon
-      />
-    ),
+    icon: <Users2Icon />,
     children: [
       {
         name: "Employee profiles",
         url: "/employee-profiles",
-        icon: (
-          <Users2Icon
-          />
-        ),
+        icon: <Users2Icon />,
       },
       {
         name: "Dept & org chart",
         url: "/department",
-        icon: (
-          <Building2
-          />
-        ),
-      },
-      {
-        name: "Job roles & grades",
-        url: "#",
-        icon: (
-          <MapIcon
-          />
-        ),
+        icon: <Building2 />,
       },
       {
         name: "Work location",
         url: "/work-location",
-        icon: (
-          <Briefcase
-          />
-        ),
+        icon: <Briefcase />,
       },
       {
         name: "Employee ID & docs",
         url: "/employee-documents",
-        icon: (
-          <IdCard
-          />
-        ),
+        icon: <IdCard />,
       },
       {
         name: "Transfer & promotion",
         url: "/transfer-promotion",
-        icon: (
-          <ArrowRightLeft
-          />
-        ),
-      }
-    ]
+        icon: <ArrowRightLeft />,
+      },
+    ],
   },
   {
     name: "User Management",
-    url: "#",
-    icon: (
-      <User2Icon
-      />
-    ),
+    icon: <User2Icon />,
     children: [
       {
         name: "User",
         url: "/users",
-        icon: (
-          <User2Icon
-          />
-        ),
+        icon: <User2Icon />,
       },
       {
         name: "Role",
         url: "/roles",
-        icon: (
-          <UserCog
-          />
-        ),
+        icon: <UserCog />,
       },
       {
         name: "Module",
         url: "/module",
-        icon: (
-          <LayoutGrid
-          />
-        ),
-      }
-    ]
+        icon: <LayoutGrid />,
+      },
+    ],
   },
-
+  {
+    name: "Employer Management",
+    icon: <Building2 />,
+    children: [
+      {
+        name: "Company",
+        url: "/companies",
+        icon: <Building2 />,
+      },
+      {
+        name: "Employer",
+        url: "/employers",
+        icon: <UserCog />,
+      },
+    ],
+  },
 ]
 
-export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & { user: any }) {
+function getMenuByRole(role?: SidebarRole) {
+  if (role?.toLowerCase() === "employee") {
+    return [
+      {
+        name: "Dashboard",
+        icon: <Gauge />,
+        children: [
+          {
+            name: "Employee Dashboard",
+            url: "/employee-dashboard",
+            icon: <Users2Icon />,
+          },
+        ],
+      },
+    ] satisfies MenuGroup[]
+  }
 
-  const dispatch = useDispatch()
+  return menu
+}
 
-  React.useEffect(() => {
-    dispatch(userLoginRequest(user))
-  }, [])
+export function AppSidebar({
+  user,
+  role,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & {
+  user?: SidebarUser
+  role?: SidebarRole
+}) {
+  const navUser = {
+    name: user?.name || "User",
+    email: user?.email || "user@example.com",
+    avatar: user?.avatar || "",
+  }
+  const filteredMenu = getMenuByRole(role)
+  const homeHref = role?.toLowerCase() === "employee" ? "/employee-dashboard" : "/dashboard"
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -293,21 +177,17 @@ export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sideb
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="p-2">
-              <Link href="/admin/home">
+              <Link href={homeHref}>
                 <div className="flex items-center gap-2">
-
-                  {/* LOGO */}
                   <Image
-                    src={"/sy.png"}
+                    src="/sy.png"
                     alt="logo"
                     width={28}
                     height={28}
                     className="rounded-md"
                   />
-
-                  {/* TEXT (hidden when collapsed) */}
                   <span className="text-sm font-semibold whitespace-nowrap group-data-[collapsible=icon]:hidden">
-                    {"SY ASSOCIATES"}
+                    SY ASSOCIATES
                   </span>
                 </div>
               </Link>
@@ -315,16 +195,17 @@ export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sideb
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent className="p-2 space-y-2">
-        {
-          menu.map((m: any, index: number) => (
-            <Switcher key={index} menu={m} />
-          ))
-        }
+        {filteredMenu.map((group) => (
+          <Switcher key={group.name} menu={group} />
+        ))}
       </SidebarContent>
+
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser user={navUser} />
       </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   )

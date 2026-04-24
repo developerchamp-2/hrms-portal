@@ -1,15 +1,17 @@
 "use client";
 import { loginFormUser } from '@/lib/actions/users';
 import { Eye, EyeOff } from 'lucide-react';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import React, { SubmitEvent, useActionState, useEffect, useState } from 'react'
 
 type LoginActionState = {
     success: boolean;
     message: string;
+    redirectTo?: string;
 } | null;
 
 const LoginForm = () => {
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [data, action] = useActionState<LoginActionState, FormData>(
         loginFormUser,
@@ -34,23 +36,22 @@ const LoginForm = () => {
     };
 
     useEffect(() => {
-        if (data?.success === false && data.message) {
-            setError(data.message);
-        }
-
         if(data?.success) {
-            redirect("/dashboard");
+            router.push(data.redirectTo || "/dashboard");
         }
 
-    }, [data]);
+    }, [data, router]);
+
+    const displayError =
+        error || (data?.success === false ? data.message : "");
 
     
 
     return (
         <form action={action}  className="space-y-4" onSubmit={handleSubmit}>
-            {error && (
+            {displayError && (
                 <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
-                    {error}
+                    {displayError}
                 </p>
             )}
 

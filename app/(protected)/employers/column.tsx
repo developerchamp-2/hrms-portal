@@ -1,11 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EmployeeProfile } from "@/types";
+import { Employer } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { EditIcon, Trash } from "lucide-react";
 import Link from "next/link";
 
-export const getEmployeeProfileColumns = ({
+export const getEmployerColumns = ({
   canEdit,
   canDelete,
   onDelete,
@@ -13,47 +13,33 @@ export const getEmployeeProfileColumns = ({
   canEdit: boolean;
   canDelete: boolean;
   onDelete: (id: string) => void;
-}): ColumnDef<EmployeeProfile>[] => {
-  const columns: ColumnDef<EmployeeProfile>[] = [
+}): ColumnDef<Employer>[] => {
+  const columns: ColumnDef<Employer>[] = [
     {
-      accessorKey: "employeeName",
-      header: "Employee",
+      accessorKey: "employerName",
+      header: "Employer Name",
     },
     {
-      accessorKey: "employeeCode",
-      header: "Employee ID",
+      accessorKey: "employerCode",
+      header: "Employer Code",
+    },
+    {
+      accessorKey: "companyName",
+      header: "Company",
+      cell: ({ row }) => row.original.companyName || "-",
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
     },
     {
       accessorKey: "phone",
       header: "Phone",
     },
     {
-      accessorKey: "departmentName",
-      header: "Department",
-      cell: ({ row }) => row.original.departmentName || "-",
-    },
-    {
-      accessorKey: "jobRoleName",
-      header: "Job Role",
-      cell: ({ row }) => row.original.jobRoleName || "-",
-    },
-    {
-      accessorKey: "companyName",
-      header: "Company Name",
-      cell: ({ row }) => row.original.companyName || "-",
-    },
-    {
-      accessorKey: "workLocationName",
-      header: "Work Location",
-      cell: ({ row }) => row.original.workLocationName || "-",
-    },
-    {
-      accessorKey: "joiningDate",
-      header: "Joining Date",
-      cell: ({ row }) =>
-        row.original.joiningDate
-          ? new Date(row.original.joiningDate).toLocaleDateString("en-GB")
-          : "-",
+      accessorKey: "designation",
+      header: "Designation",
+      cell: ({ row }) => row.original.designation || "-",
     },
     {
       accessorKey: "status",
@@ -82,7 +68,7 @@ export const getEmployeeProfileColumns = ({
                 size="icon"
                 className="bg-orange-500 hover:bg-orange-600"
               >
-                <Link href={`/employee-profiles/edit/${id}`}>
+                <Link href={`/employers/edit/${id}`}>
                   <EditIcon size={16} />
                 </Link>
               </Button>
