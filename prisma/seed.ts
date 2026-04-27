@@ -1,6 +1,8 @@
 import "dotenv/config";
 import bcrypt from "bcrypt";
+import { prisma } from "../lib/prisma";
 import {
+  Status,
   ExperienceType,
   MovementType,
   Status,
@@ -8,13 +10,13 @@ import {
 import { prisma } from "../lib/prisma";
 
 async function main() {
-  console.log("Seeding started...");
+  console.log("🌱 Seeding started...");
 
   const adminPassword = await bcrypt.hash("admin123", 10);
   const employeePassword = await bcrypt.hash("employee123", 10);
   const employerPassword = await bcrypt.hash("employer123", 10);
 
-  // Roles
+  /* ---------------- ROLES ---------------- */
   const adminRole = await prisma.role.upsert({
     where: { name: "Admin" },
     update: {},
@@ -45,7 +47,7 @@ async function main() {
     },
   });
 
-  // Modules
+  /* ---------------- MODULES ---------------- */
   const modules = [
     { name: "Dashboard", description: "Dashboard Module", route: "/dashboard" },
     { name: "User", description: "Users Module", route: "/users" },
@@ -88,19 +90,38 @@ async function main() {
 
   const createdModules = [];
 
-  for (const mod of modules) {
-    const createdModule = await prisma.module.upsert({
-      where: { route: mod.route },
-      update: {},
-      create: {
-        ...mod,
-        status: Status.ACTIVE,
+  for (const item of modules) {
+    const existing = await prisma.module.findFirst({
+      where: {
+        OR: [{ name: item.name }, { route: item.route }],
       },
     });
 
-    createdModules.push(createdModule);
+    let mod;
+
+    if (existing) {
+      mod = await prisma.module.update({
+        where: { id: existing.id },
+        data: {
+          name: item.name,
+          description: item.description,
+          route: item.route,
+          status: Status.ACTIVE,
+        },
+      });
+    } else {
+      mod = await prisma.module.create({
+        data: {
+          ...item,
+          status: Status.ACTIVE,
+        },
+      });
+    }
+
+    createdModules.push(mod);
   }
 
+  /* ---------------- ROLE MODULE ---------------- */
   for (const mod of createdModules) {
     await prisma.roleModule.upsert({
       where: {
@@ -109,7 +130,12 @@ async function main() {
           moduleId: mod.id,
         },
       },
-      update: {},
+      update: {
+        canView: true,
+        canCreate: true,
+        canEdit: true,
+        canDelete: true,
+      },
       create: {
         roleId: adminRole.id,
         moduleId: mod.id,
@@ -127,7 +153,12 @@ async function main() {
           moduleId: mod.id,
         },
       },
-      update: {},
+      update: {
+        canView: true,
+        canCreate: true,
+        canEdit: true,
+        canDelete: false,
+      },
       create: {
         roleId: hrRole.id,
         moduleId: mod.id,
@@ -139,7 +170,7 @@ async function main() {
     });
   }
 
-  // Users
+  /* ---------------- USERS ---------------- */
   await prisma.user.upsert({
     where: { email: "admin@hrms.com" },
     update: {},
@@ -168,7 +199,39 @@ async function main() {
     },
   });
 
-  // Departments
+  /* ---------------- COMPANY ---------------- */
+  const company = await prisma.company.upsert({
+    where: { companyCode: "CMP001" },
+    update: {},
+    create: {
+      companyName: "SY Associates",
+      companyCode: "CMP001",
+      email: "contact@syassociates.com",
+      phone: "9810012345",
+      website: "https://syassociates.com",
+      address: "Noida, India",
+      status: Status.ACTIVE,
+    },
+  });
+
+  /* ---------------- EMPLOYER ---------------- */
+  await prisma.employer.upsert({
+    where: { email: "employer@hrms.com" },
+    update: {},
+    create: {
+      companyId: company.id,
+      employerName: "Amit Verma",
+      employerCode: "EMPR001",
+      email: "employer@hrms.com",
+      phone: "9898989898",
+      password: employerPassword,
+      designation: "Hiring Manager",
+      address: "Noida, India",
+      status: Status.ACTIVE,
+    },
+  });
+
+  /* ---------------- DEPARTMENT ---------------- */
   const itDept = await prisma.department.upsert({
     where: { code: "IT001" },
     update: {},
@@ -191,7 +254,7 @@ async function main() {
     },
   });
 
-  // Job Roles
+  /* ---------------- JOB ROLE ---------------- */
   const developer = await prisma.jobRole.upsert({
     where: { code: "DEV001" },
     update: {},
@@ -214,7 +277,7 @@ async function main() {
     },
   });
 
-  // Locations
+  /* ---------------- WORK LOCATION ---------------- */
   const delhiOffice = await prisma.workLocation.upsert({
     where: { code: "DEL001" },
     update: {},
@@ -245,22 +308,7 @@ async function main() {
     },
   });
 
-  // Company (Create before EmployeeProfile)
-  const company = await prisma.company.upsert({
-    where: { companyCode: "CMP001" },
-    update: {},
-    create: {
-      companyName: "SY Associates",
-      companyCode: "CMP001",
-      email: "contact@syassociates.com",
-      phone: "9810012345",
-      website: "https://syassociates.com",
-      address: "Noida, Uttar Pradesh, India",
-      status: Status.ACTIVE,
-    },
-  });
-
-  // Employee Profile
+  /* ---------------- EMPLOYEE PROFILE ---------------- */
   const employeeProfile = await prisma.employeeProfile.upsert({
     where: { employeeCode: "EMP001" },
     update: {},
@@ -268,31 +316,25 @@ async function main() {
       employeeId: employeeUser.id,
       employeeName: "Rahul Sharma",
       employeeCode: "EMP001",
-
       companyId: company.id,
-
       phone: "9876543210",
       alternatePhone: "9876500000",
       gender: "Male",
+      dateOfBirth: new Date("2000-01-01"),
       joiningDate: new Date(),
-
       departmentId: itDept.id,
       jobRoleId: developer.id,
       workLocationId: delhiOffice.id,
-
       address: "Delhi, India",
       emergencyContactName: "Ramesh Sharma",
       emergencyContactPhone: "9999999999",
-
       status: Status.ACTIVE,
     },
   });
 
-  // Employee Documents
+  /* ---------------- EMPLOYEE DOCUMENT ---------------- */
   const existingDoc = await prisma.employeeDocument.findFirst({
-    where: {
-      employeeId: employeeProfile.id,
-    },
+    where: { employeeId: employeeProfile.id },
   });
 
   if (!existingDoc) {
@@ -301,15 +343,16 @@ async function main() {
         employeeId: employeeProfile.id,
         employeeCode: employeeProfile.employeeCode,
         aadhaarNumber: "123412341234",
-        panNumber: "ABCDE1234F",
         aadhaarFileUrl: "/uploads/aadhaar.pdf",
+        panNumber: "ABCDE1234F",
         panFileUrl: "/uploads/pan.pdf",
         educationEntries: [
           {
             degree: "B.Tech",
-            institute: "Delhi University",
-            year: "2024",
-            percentage: "78%",
+            college: "Delhi University",
+            year: "2022",
+            marks: 78,
+            marksheetFileUrl: "/uploads/marksheet.pdf",
           },
         ],
         experienceType: ExperienceType.FRESHER,
@@ -319,7 +362,7 @@ async function main() {
     });
   }
 
-  // Transfer / Promotion
+  /* ---------------- TRANSFER PROMOTION ---------------- */
   const existingTransfer = await prisma.transferPromotion.findFirst({
     where: {
       employeeId: employeeProfile.id,
@@ -334,38 +377,36 @@ async function main() {
         movementType: MovementType.TRANSFER,
         fromLocationId: delhiOffice.id,
         toLocationId: noidaOffice.id,
-        effectiveDate: new Date(),
-        reason: "Project Requirement",
         currentDesignation: "Software Developer",
         newDesignation: "Senior Software Developer",
+        effectiveDate: new Date(),
+        reason: "Project Requirement",
         status: Status.ACTIVE,
       },
     });
   }
 
-  // Employer
-  await prisma.employer.upsert({
-    where: { email: "employer@hrms.com" },
-    update: {},
-    create: {
-      companyId: company.id,
-      employerName: "Amit Verma",
-      employerCode: "EMPR001",
-      email: "employer@hrms.com",
-      phone: "9898989898",
-      password: employerPassword,
-      designation: "Hiring Manager",
-      address: "Noida, Uttar Pradesh, India",
-      status: Status.ACTIVE,
-    },
-  });
+  /* ---------------- CONFIGURATION ---------------- */
+  const config = await prisma.configuration.findFirst();
 
-  console.log("Seeding completed successfully!");
+  if (!config) {
+    await prisma.configuration.create({
+      data: {
+        name: "SY Associates",
+        email: "admin@syassociates.com",
+        password: "test123",
+        logo: "/uploads/default-logo.png",
+        favicon: "/uploads/default-favicon.png",
+      },
+    });
+  }
+
+  console.log("✅ Seeding completed successfully!");
 }
 
 main()
   .catch((error) => {
-    console.error("Seed failed:", error);
+    console.error("❌ Seed failed:", error);
     process.exit(1);
   })
   .finally(async () => {

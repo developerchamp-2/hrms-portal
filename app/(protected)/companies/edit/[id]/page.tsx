@@ -2,15 +2,23 @@ import CompanyForm from "@/components/company/company-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCompanyById } from "@/lib/actions/companies";
+import { canAccess } from "@/lib/rbac";
 import { Company } from "@/types";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 const CompanyEditPage = async ({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) => {
+  const route = "/companies";
+  const canEdit = await canAccess(route, "edit");
+
+  if (!canEdit) {
+    redirect("/404");
+  }
+
   const { id } = await params;
   const record = await getCompanyById(id);
 

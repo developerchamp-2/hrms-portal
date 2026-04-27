@@ -1,23 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { getWorkLocations } from "@/lib/actions/work-location";
+import { getRoutePermissions } from "@/lib/rbac";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import WorkLocationDataTable from "./work-location-data-table";
 
 const WorkLocationPage = async () => {
-  const workLocations = await getWorkLocations();
+  const route = "/work-location";
+  const permissions = await getRoutePermissions(route);
 
-  const canCreate = true;
-  const canEdit = true;
-  const canDelete = true;
+  if (!permissions.canView) {
+    redirect("/404");
+  }
+
+  const workLocations = await getWorkLocations();
 
   return (
     <WorkLocationDataTable
       data={workLocations}
-      canEdit={canEdit}
-      canDelete={canDelete}
+      canEdit={permissions.canEdit}
+      canDelete={permissions.canDelete}
       title="Work Location"
       actions={
-        canCreate && (
+        permissions.canCreate && (
           <Button className="bg-blue-500 hover:bg-blue-600">
             <Link href="/work-location/create">Add Work Location</Link>
           </Button>

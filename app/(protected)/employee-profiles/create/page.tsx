@@ -1,9 +1,18 @@
 import EmployeeProfileForm from "@/components/employee-profiles/employee-profile-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { canAccess } from "@/lib/rbac";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 const EmployeeProfileCreatePage = async () => {
+  const route = "/employee-profiles";
+  const canCreate = await canAccess(route, "create");
+
+  if (!canCreate) {
+    redirect("/404");
+  }
+
   return (
     <Card>
       <CardHeader>

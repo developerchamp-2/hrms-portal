@@ -2,15 +2,23 @@ import EmployerForm from "@/components/employer/employer-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getEmployerById } from "@/lib/actions/employers";
+import { canAccess } from "@/lib/rbac";
 import { Employer } from "@/types";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 const EmployerEditPage = async ({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) => {
+  const route = "/employers";
+  const canEdit = await canAccess(route, "edit");
+
+  if (!canEdit) {
+    redirect("/404");
+  }
+
   const { id } = await params;
   const record = await getEmployerById(id);
 

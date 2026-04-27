@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import DepartmentForm from "@/components/department/department-form";
 import { getDepartmentById } from "@/lib/actions/department";
+import { canAccess } from "@/lib/rbac";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -11,6 +12,13 @@ const DepartmentEditPage = async ({
 }: {
   params: Promise<{ id: string }>;
 }) => {
+  const route = "/department";
+  const canEdit = await canAccess(route, "edit");
+
+  if (!canEdit) {
+    redirect("/404");
+  }
+
   const { id } = await params;
 
   if (!id) {

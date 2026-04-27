@@ -1,9 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import UserForm from "@/components/user/user-form";
+import { canAccess } from "@/lib/rbac";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 const UserCreatePage = async () => {
+  const route = "/users";
+  const canCreate = await canAccess(route, "create");
+
+  if (!canCreate) {
+    redirect("/404");
+  }
+
   return (
     <Card>
       <CardHeader>

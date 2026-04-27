@@ -2,15 +2,23 @@ import WorkLocationForm from "@/components/work-location/work-location-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getWorkLocationById } from "@/lib/actions/work-location";
+import { canAccess } from "@/lib/rbac";
 import { WorkLocation } from "@/types";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 const WorkLocationEditPage = async ({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) => {
+  const route = "/work-location";
+  const canEdit = await canAccess(route, "edit");
+
+  if (!canEdit) {
+    redirect("/404");
+  }
+
   const { id } = await params;
   const location = await getWorkLocationById(id);
 

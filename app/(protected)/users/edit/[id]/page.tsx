@@ -1,15 +1,21 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
 import { notFound, redirect } from "next/navigation"
 import UserForm from "@/components/user/user-form"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { getUserById } from "@/lib/actions/users"
+import { canAccess } from "@/lib/rbac"
 import { User } from "@/types"
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const route = "/users"
+  const canEdit = await canAccess(route, "edit")
+
+  if (!canEdit) {
+    redirect("/404")
+  }
 
   const { id } = await params
 

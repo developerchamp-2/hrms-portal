@@ -1,23 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { getEmployeeDocuments } from "@/lib/actions/employee-documents";
+import { getRoutePermissions } from "@/lib/rbac";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import EmployeeDocumentDataTable from "./employee-document-data-table";
 
 const EmployeeDocumentPage = async () => {
-  const records = await getEmployeeDocuments();
+  const route = "/employee-documents";
+  const permissions = await getRoutePermissions(route);
 
-  const canCreate = true;
-  const canEdit = true;
-  const canDelete = true;
+  if (!permissions.canView) {
+    redirect("/404");
+  }
+
+  const records = await getEmployeeDocuments();
 
   return (
     <EmployeeDocumentDataTable
       data={records}
-      canEdit={canEdit}
-      canDelete={canDelete}
+      canEdit={permissions.canEdit}
+      canDelete={permissions.canDelete}
       title="Employee ID & Docs"
       actions={
-        canCreate && (
+        permissions.canCreate && (
           <Button className="bg-blue-500 hover:bg-blue-600">
             <Link href="/employee-documents/create">Add Employee Document</Link>
           </Button>

@@ -2,15 +2,23 @@ import EmployeeProfileForm from "@/components/employee-profiles/employee-profile
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getEmployeeProfileById } from "@/lib/actions/employee-profiles";
+import { canAccess } from "@/lib/rbac";
 import { EmployeeProfile } from "@/types";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 const EmployeeProfileEditPage = async ({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) => {
+  const route = "/employee-profiles";
+  const canEdit = await canAccess(route, "edit");
+
+  if (!canEdit) {
+    redirect("/404");
+  }
+
   const { id } = await params;
   const record = await getEmployeeProfileById(id);
 

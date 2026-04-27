@@ -29,7 +29,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-const ConfigurationForm = ({ data }: { data?: Configuration }) => {
+const ConfigurationForm = ({
+  data,
+  canEdit = true,
+}: {
+  data?: Configuration;
+  canEdit?: boolean;
+}) => {
   const router = useRouter();
 
   const [isPending, startTransition] = React.useTransition();
@@ -132,6 +138,7 @@ const ConfigurationForm = ({ data }: { data?: Configuration }) => {
                         <FormControl>
                           <Input
                             placeholder="Enter company name"
+                            disabled={!canEdit}
                             {...field}
                           />
                         </FormControl>
@@ -153,6 +160,7 @@ const ConfigurationForm = ({ data }: { data?: Configuration }) => {
                             type="file"
                             accept="image/*"
                             className="cursor-pointer"
+                            disabled={!canEdit}
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               field.onChange(file || "");
@@ -197,6 +205,7 @@ const ConfigurationForm = ({ data }: { data?: Configuration }) => {
                             type="file"
                             accept="image/*"
                             className="cursor-pointer"
+                            disabled={!canEdit}
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               field.onChange(file || "");
@@ -247,6 +256,7 @@ const ConfigurationForm = ({ data }: { data?: Configuration }) => {
                           <Input
                             type="email"
                             placeholder="Enter email"
+                            disabled={!canEdit}
                             {...field}
                           />
                         </FormControl>
@@ -268,6 +278,7 @@ const ConfigurationForm = ({ data }: { data?: Configuration }) => {
                           <Input
                             type="password"
                             placeholder="Enter password"
+                            disabled={!canEdit}
                             {...field}
                           />
                         </FormControl>
@@ -282,10 +293,10 @@ const ConfigurationForm = ({ data }: { data?: Configuration }) => {
 
             <Button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || !canEdit}
               className="w-full"
             >
-              {isPending ? "Saving..." : "Submit"}
+              {!canEdit ? "Read Only" : isPending ? "Saving..." : "Submit"}
             </Button>
           </form>
         </Form>

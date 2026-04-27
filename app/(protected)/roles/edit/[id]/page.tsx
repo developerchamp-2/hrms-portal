@@ -4,14 +4,20 @@ import RoleForm from "@/components/role/role-form"
 import Link from "next/link"
 import { getRoleById } from "@/lib/actions/role"
 import { notFound, redirect } from "next/navigation"
-import { Role } from "@/types"
 import { getModules } from "@/lib/actions/module-action"
+import { canAccess } from "@/lib/rbac"
 
 const RoleEditPage = async ({
     params,
 }: {
     params: Promise<{ id: string }>
 }) => {
+    const route = "/roles";
+    const canEdit = await canAccess(route, "edit");
+
+    if (!canEdit) {
+        redirect("/404");
+    }
 
     const { id } = await params
 

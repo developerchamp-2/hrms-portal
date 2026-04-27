@@ -2,15 +2,23 @@ import EmployeeDocumentForm from "@/components/employee-documents/employee-docum
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getEmployeeDocumentById } from "@/lib/actions/employee-documents";
+import { canAccess } from "@/lib/rbac";
 import { EmployeeDocument } from "@/types";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 const EmployeeDocumentEditPage = async ({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) => {
+  const route = "/employee-documents";
+  const canEdit = await canAccess(route, "edit");
+
+  if (!canEdit) {
+    redirect("/404");
+  }
+
   const { id } = await params;
   const record = await getEmployeeDocumentById(id);
 

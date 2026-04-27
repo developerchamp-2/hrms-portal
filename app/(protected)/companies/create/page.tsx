@@ -1,9 +1,18 @@
 import CompanyForm from "@/components/company/company-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { canAccess } from "@/lib/rbac";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 const CompanyCreatePage = async () => {
+  const route = "/companies";
+  const canCreate = await canAccess(route, "create");
+
+  if (!canCreate) {
+    redirect("/404");
+  }
+
   return (
     <Card>
       <CardHeader>

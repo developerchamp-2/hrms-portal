@@ -1,23 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { getTransferPromotions } from "@/lib/actions/transfer-promotion";
+import { getRoutePermissions } from "@/lib/rbac";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import TransferPromotionDataTable from "./transfer-promotion-data-table";
 
 const TransferPromotionPage = async () => {
-  const records = await getTransferPromotions();
+  const route = "/transfer-promotion";
+  const permissions = await getRoutePermissions(route);
 
-  const canCreate = true;
-  const canEdit = true;
-  const canDelete = true;
+  if (!permissions.canView) {
+    redirect("/404");
+  }
+
+  const records = await getTransferPromotions();
 
   return (
     <TransferPromotionDataTable
       data={records}
-      canEdit={canEdit}
-      canDelete={canDelete}
+      canEdit={permissions.canEdit}
+      canDelete={permissions.canDelete}
       title="Transfer & Promotion"
       actions={
-        canCreate && (
+        permissions.canCreate && (
           <Button className="bg-blue-500 hover:bg-blue-600">
             <Link href="/transfer-promotion/create">Add Transfer & Promotion</Link>
           </Button>

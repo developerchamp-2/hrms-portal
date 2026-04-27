@@ -1,23 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { getEmployeeProfiles } from "@/lib/actions/employee-profiles";
+import { getRoutePermissions } from "@/lib/rbac";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import EmployeeProfileDataTable from "./employee-profile-data-table";
 
 const EmployeeProfilePage = async () => {
-  const records = await getEmployeeProfiles();
+  const route = "/employee-profiles";
+  const permissions = await getRoutePermissions(route);
 
-  const canCreate = true;
-  const canEdit = true;
-  const canDelete = true;
+  if (!permissions.canView) {
+    redirect("/404");
+  }
+
+  const records = await getEmployeeProfiles();
 
   return (
     <EmployeeProfileDataTable
       data={records}
-      canEdit={canEdit}
-      canDelete={canDelete}
+      canEdit={permissions.canEdit}
+      canDelete={permissions.canDelete}
       title="Employee Profiles"
       actions={
-        canCreate && (
+        permissions.canCreate && (
           <Button className="bg-blue-500 hover:bg-blue-600">
             <Link href="/employee-profiles/create">Add Employee Profile</Link>
           </Button>

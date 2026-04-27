@@ -3,8 +3,17 @@ import Link from "next/link";
 import DepartmentForm from "@/components/department/department-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { canAccess } from "@/lib/rbac";
+import { redirect } from "next/navigation";
 
 const DepartmentCreatePage = async () => {
+  const route = "/department";
+  const canCreate = await canAccess(route, "create");
+
+  if (!canCreate) {
+    redirect("/404");
+  }
+
   return (
     <Card>
       <CardHeader>
