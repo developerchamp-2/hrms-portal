@@ -71,6 +71,7 @@ model User {
   role      Role     @relation(fields: [roleId], references: [id])
 
   employeeProfile EmployeeProfile?
+  projects   Project[]
 }
 
 model Company {
@@ -234,7 +235,6 @@ model EmployeeProfile {
 
   employeeDocuments  EmployeeDocument[]
   transferPromotions TransferPromotion[]
-  projects           Project[]
   projectMembers     ProjectMember[]
   tasks              Task[]
   taskComments       TaskComment[]
@@ -290,7 +290,7 @@ model Project {
 
   createdById String @db.Uuid
 
-  createdBy EmployeeProfile @relation(fields: [createdById], references: [id])
+  createdBy User @relation(fields: [createdById], references: [id])
 
   members ProjectMember[]
   tasks   Task[]

@@ -1,6 +1,7 @@
 import {
   ExperienceType,
   MovementType,
+  ProjectStatus,
   Status,
 } from "@prisma/client";
 
@@ -157,3 +158,12 @@ export const employerDefaultValues = {
   remark: "",
   status: Status.ACTIVE,
 };
+
+export const projectDefaultValues = {
+  name: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+  status: ProjectStatus.ACTIVE,
+  createdById: "",
+}

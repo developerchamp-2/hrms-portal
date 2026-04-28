@@ -300,6 +300,8 @@ export const projectSchema = z.object({
   endDate: z.union([z.date().min(1, "Start Date is required"), z.string().nullable()]),
   status: z.enum(Object.values(ProjectStatus)),
   createdById: z.string().min(1, "CreatedBy is required"),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
 });
 
 /* ---------------- PROJECT MEMBER ---------------- */
@@ -308,6 +310,8 @@ export const projectMemberSchema = z.object({
   projectId: z.string().min(1, "Project is required"),
   employeeId: z.string().min(1, "Employee is required"),
   assignedAt: z.union([z.date().optional(), z.string().nullable()]),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
 });
 
 /* ---------------- TASK ---------------- */
@@ -324,6 +328,8 @@ export const taskSchema = z.object({
 
   startDate: z.union([z.date().min(1, "Start Date is required"), z.string().nullable()]),
   dueDate: z.union([z.date().min(1, "Due Date is required"), z.string().nullable()]),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
 });
 
 /* ---------------- TASK COMMENT ---------------- */
@@ -332,4 +338,6 @@ export const taskCommentSchema = z.object({
   projectId: z.string().min(1, "Project is required"),
   employeeId: z.string().min(1, "Employee is required"),
   comment: z.string().min(1, "Comment is required"),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
 });

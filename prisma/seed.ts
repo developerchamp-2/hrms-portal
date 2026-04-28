@@ -5,7 +5,6 @@ import {
   Status,
   ExperienceType,
   MovementType,
-  Status,
 } from "@prisma/client";
 
 async function main() {
