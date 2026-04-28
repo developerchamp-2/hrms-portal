@@ -1,15 +1,25 @@
 "use client";
 
 import React from "react";
-import { useForm, type ControllerRenderProps, type SubmitHandler } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Loader2 } from "lucide-react";
+import {
+  ArrowRight,
+  Loader2,
+  Building2,
+  Hash,
+  FileText,
+  StickyNote,
+} from "lucide-react";
 import z from "zod";
 import { toast } from "sonner";
-
 import { Status } from "@prisma/client";
-import { createDepartment, updateDepartment } from "@/lib/actions/department";
+
+import {
+  createDepartment,
+  updateDepartment,
+} from "@/lib/actions/department";
 import { departmentDefaultValues } from "@/lib/constants";
 import { departmentSchema } from "@/lib/validators";
 
@@ -39,16 +49,21 @@ type Props = {
   update: boolean;
 };
 
-const DepartmentForm = ({ data, update = false }: Props) => {
+const fieldClass =
+  "h-12 w-full rounded-2xl border border-indigo-100 bg-white/95 shadow-sm transition-all duration-200 hover:border-cyan-200 focus:ring-2 focus:ring-indigo-300 focus:border-cyan-300";
+
+const textAreaClass =
+  "min-h-28 w-full rounded-2xl border border-indigo-100 bg-white/95 shadow-sm transition-all duration-200 hover:border-cyan-200 focus:ring-2 focus:ring-indigo-300 focus:border-cyan-300";
+
+const DepartmentForm = ({ data, update }: Props) => {
   const router = useRouter();
   const id = data?.id;
+  const [isPending, startTransition] = React.useTransition();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(departmentSchema),
     defaultValues: data ?? departmentDefaultValues,
   });
-
-  const [isPending, startTransition] = React.useTransition();
 
   const onSubmit: SubmitHandler<FormValues> = (values) => {
     startTransition(async () => {
@@ -63,25 +78,40 @@ const DepartmentForm = ({ data, update = false }: Props) => {
         return;
       }
 
+      toast.success("Success", {
+        description: res.message,
+      });
+
       router.push("/department");
+      router.refresh();
     });
   };
 
   return (
     <Form {...form}>
       <form
+        onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-6"
-        onSubmit={form.handleSubmit(onSubmit, (errors) => console.log(errors))}
       >
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Top Fields */}
+        <div className="grid gap-5 md:grid-cols-2">
           <FormField
             control={form.control}
             name="name"
-            render={({ field }: { field: ControllerRenderProps<FormValues, "name"> }) => (
+            render={({ field }) => (
               <FormItem>
-                <FormLabel>Department Name</FormLabel>
+                <FormLabel className="text-sm font-semibold text-slate-700">
+                  Department Name
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter department name" {...field} />
+                  <div className="relative">
+                    <Building2 className="absolute left-4 top-4 h-4 w-4 text-indigo-400" />
+                    <Input
+                      placeholder="Enter department name"
+                      className={`${fieldClass} pl-11`}
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -91,11 +121,20 @@ const DepartmentForm = ({ data, update = false }: Props) => {
           <FormField
             control={form.control}
             name="code"
-            render={({ field }: { field: ControllerRenderProps<FormValues, "code"> }) => (
+            render={({ field }) => (
               <FormItem>
-                <FormLabel>Code</FormLabel>
+                <FormLabel className="text-sm font-semibold text-slate-700">
+                  Department Code
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter department code" {...field} />
+                  <div className="relative">
+                    <Hash className="absolute left-4 top-4 h-4 w-4 text-indigo-400" />
+                    <Input
+                      placeholder="Enter department code"
+                      className={`${fieldClass} pl-11`}
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -105,22 +144,84 @@ const DepartmentForm = ({ data, update = false }: Props) => {
           <FormField
             control={form.control}
             name="status"
-            render={({ field }: { field: ControllerRenderProps<FormValues, "status"> }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <FormControl>
-                  <Select
-                    value={field.value}
-                    onValueChange={(value) => field.onChange(value as Status)}
-                  >
-                    <SelectTrigger className="w-full">
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel className="text-sm font-semibold text-slate-700">
+                  Status
+                </FormLabel>
+
+                <Select
+                  value={field.value}
+                  onValueChange={(value) =>
+                    field.onChange(value as Status)
+                  }
+                >
+                  <FormControl>
+                    <SelectTrigger className={`${fieldClass} w-full`}>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={Status.ACTIVE}>Active</SelectItem>
-                      <SelectItem value={Status.INACTIVE}>Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  </FormControl>
+
+                  <SelectContent className="rounded-2xl border border-indigo-100 shadow-xl">
+                    <SelectItem value={Status.ACTIVE}>
+                      Active
+                    </SelectItem>
+                    <SelectItem value={Status.INACTIVE}>
+                      Inactive
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Textareas */}
+        <div className="grid gap-5 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-semibold text-slate-700">
+                  Description
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <FileText className="absolute left-4 top-4 h-4 w-4 text-indigo-400" />
+                    <Textarea
+                      placeholder="Enter description"
+                      className={`${textAreaClass} pl-11`}
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="remark"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-semibold text-slate-700">
+                  Remark
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <StickyNote className="absolute left-4 top-4 h-4 w-4 text-indigo-400" />
+                    <Textarea
+                      placeholder="Enter remark"
+                      className={`${textAreaClass} pl-11`}
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -128,50 +229,17 @@ const DepartmentForm = ({ data, update = false }: Props) => {
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }: { field: ControllerRenderProps<FormValues, "description"> }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  className="h-32"
-                  placeholder="Enter description"
-                  {...field}
-                  value={field.value ?? ""}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="remark"
-          render={({ field }: { field: ControllerRenderProps<FormValues, "remark"> }) => (
-            <FormItem>
-              <FormLabel>Remark</FormLabel>
-              <FormControl>
-                <Textarea
-                  className="h-32"
-                  placeholder="Enter remark"
-                  {...field}
-                  value={field.value ?? ""}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex gap-3">
-          <Button type="submit" disabled={isPending}>
+        {/* Submit */}
+        <div className="pt-2">
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="h-12 rounded-2xl bg-gradient-to-r from-indigo-600 to-cyan-500 px-8 text-white shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-xl"
+          >
             {isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="mr-2 h-4 w-4" />
             )}
             {update ? "Update Department" : "Save Department"}
           </Button>

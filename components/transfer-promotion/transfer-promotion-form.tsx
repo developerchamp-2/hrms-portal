@@ -11,12 +11,23 @@ import { transferPromotionDefaultValues } from "@/lib/constants";
 import { transferPromotionSchema } from "@/lib/validators";
 import { TransferPromotion } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, Loader2 } from "lucide-react";
+import {
+  ArrowRight,
+  Loader2,
+  User,
+  MoveRight,
+  MapPin,
+  Briefcase,
+  Calendar,
+  FileText,
+  StickyNote,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
+
 import { Button } from "../ui/button";
 import {
   Form,
@@ -43,10 +54,8 @@ type Props = {
 
 type EmployeeOption = {
   id: string;
-  employeeId?: string | null;
   employeeName: string;
   employeeCode: string;
-  status?: Status;
 };
 
 type LocationOption = {
@@ -54,14 +63,29 @@ type LocationOption = {
   name: string;
 };
 
-const TransferPromotionForm = ({ data, update }: Props) => {
+const fieldClass =
+  "h-12 w-full rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:border-cyan-300 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100 outline-none";
+
+const textAreaClass =
+  "min-h-28 w-full rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:border-cyan-300 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100 outline-none";
+
+const TransferPromotionForm = ({
+  data,
+  update,
+}: Props) => {
   const router = useRouter();
   const id = data?.id;
 
-  const [employees, setEmployees] = React.useState<EmployeeOption[]>([]);
-  const [locations, setLocations] = React.useState<LocationOption[]>([]);
+  const [employees, setEmployees] = React.useState<
+    EmployeeOption[]
+  >([]);
+  const [locations, setLocations] = React.useState<
+    LocationOption[]
+  >([]);
 
-  const form = useForm<z.infer<typeof transferPromotionSchema>>({
+  const form = useForm<
+    z.infer<typeof transferPromotionSchema>
+  >({
     resolver: zodResolver(transferPromotionSchema),
     defaultValues: data ?? transferPromotionDefaultValues,
   });
@@ -73,130 +97,171 @@ const TransferPromotionForm = ({ data, update }: Props) => {
   }, [data, form]);
 
   useEffect(() => {
-    getEmployeeProfileSelectOptions().then((records) => {
-      setEmployees(records);
-    });
+    getEmployeeProfileSelectOptions().then(
+      (records) => setEmployees(records as EmployeeOption[])
+    );
 
-    getWorkLocations().then((records) => {
-      setLocations(records);
-    });
+    getWorkLocations().then((records) =>
+      setLocations(records)
+    );
   }, []);
 
-  const [isPending, startTransition] = React.useTransition();
+  const [isPending, startTransition] =
+    React.useTransition();
 
-  const onSubmit: SubmitHandler<z.infer<typeof transferPromotionSchema>> =
-    async (values) => {
-      startTransition(async () => {
-        const res =
-          update && id
-            ? await updateTransferPromotion(values, id)
-            : await createTransferPromotion(values);
+  const onSubmit: SubmitHandler<
+    z.infer<typeof transferPromotionSchema>
+  > = async (values) => {
+    startTransition(async () => {
+      const res =
+        update && id
+          ? await updateTransferPromotion(values, id)
+          : await createTransferPromotion(values);
 
-        if (!res?.success) {
-          toast.error("Error", {
-            description: res?.message,
-          });
-          return;
-        }
-
-        toast.success("Success", {
-          description: res.message,
+      if (!res?.success) {
+        toast.error("Error", {
+          description: res?.message,
         });
-        router.push("/transfer-promotion");
-        router.refresh();
+        return;
+      }
+
+      toast.success("Success", {
+        description: res.message,
       });
-    };
+
+      router.push("/transfer-promotion");
+      router.refresh();
+    });
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6"
+      >
+        <div className="grid gap-5 md:grid-cols-2">
+          {/* Employee */}
           <FormField
             control={form.control}
             name="employeeId"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Employee Name</FormLabel>
-                <Select
-                  value={field.value || undefined}
-                  onValueChange={(value) => {
-                    const selectedEmployee = employees.find(
-                      (employee) => employee.id === value,
-                    );
 
-                    field.onChange(selectedEmployee?.id ?? "");
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Employee name" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id}>
-                        {employee.employeeName} ({employee.employeeCode})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="movementType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Movement Type</FormLabel>
-                <Select
-                  value={field.value}
-                  onValueChange={(value) => field.onChange(value as MovementType)}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select movement type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value={MovementType.TRANSFER}>Transfer</SelectItem>
-                    <SelectItem value={MovementType.PROMOTION}>Promotion</SelectItem>
-                    <SelectItem value={MovementType.TRANSFER_PROMOTION}>
-                      Transfer & Promotion
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="fromLocationId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>From Location</FormLabel>
                 <Select
                   value={field.value || undefined}
                   onValueChange={field.onChange}
                 >
                   <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select current location" />
+                    <SelectTrigger
+                      className={fieldClass}
+                    >
+                      <SelectValue placeholder="Select employee" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    {locations.map((location) => (
-                      <SelectItem key={location.id} value={location.id!}>
-                        {location.name}
+
+                  <SelectContent className="rounded-2xl border border-slate-200 shadow-xl">
+                    {employees.map((employee) => (
+                      <SelectItem
+                        key={employee.id}
+                        value={employee.id}
+                      >
+                        {employee.employeeName} (
+                        {employee.employeeCode})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Movement Type */}
+          <FormField
+            control={form.control}
+            name="movementType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Movement Type
+                </FormLabel>
+
+                <Select
+                  value={field.value}
+                  onValueChange={(value) =>
+                    field.onChange(
+                      value as MovementType
+                    )
+                  }
+                >
+                  <FormControl>
+                    <SelectTrigger
+                      className={fieldClass}
+                    >
+                      <SelectValue placeholder="Select movement type" />
+                    </SelectTrigger>
+                  </FormControl>
+
+                  <SelectContent className="rounded-2xl border border-slate-200 shadow-xl">
+                    <SelectItem
+                      value={MovementType.TRANSFER}
+                    >
+                      Transfer
+                    </SelectItem>
+                    <SelectItem
+                      value={MovementType.PROMOTION}
+                    >
+                      Promotion
+                    </SelectItem>
+                    <SelectItem
+                      value={
+                        MovementType.TRANSFER_PROMOTION
+                      }
+                    >
+                      Transfer & Promotion
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          {/* Locations */}
+          <FormField
+            control={form.control}
+            name="fromLocationId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  From Location
+                </FormLabel>
+
+                <Select
+                  value={field.value || undefined}
+                  onValueChange={field.onChange}
+                >
+                  <FormControl>
+                    <SelectTrigger
+                      className={fieldClass}
+                    >
+                      <SelectValue placeholder="Current location" />
+                    </SelectTrigger>
+                  </FormControl>
+
+                  <SelectContent className="rounded-2xl border border-slate-200 shadow-xl">
+                    {locations.map((item) => (
+                      <SelectItem
+                        key={item.id}
+                        value={item.id!}
+                      >
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormItem>
             )}
           />
@@ -206,39 +271,56 @@ const TransferPromotionForm = ({ data, update }: Props) => {
             name="toLocationId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>To Location</FormLabel>
+                <FormLabel>
+                  To Location
+                </FormLabel>
+
                 <Select
                   value={field.value || undefined}
                   onValueChange={field.onChange}
                 >
                   <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select new location" />
+                    <SelectTrigger
+                      className={fieldClass}
+                    >
+                      <SelectValue placeholder="New location" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    {locations.map((location) => (
-                      <SelectItem key={location.id} value={location.id!}>
-                        {location.name}
+
+                  <SelectContent className="rounded-2xl border border-slate-200 shadow-xl">
+                    {locations.map((item) => (
+                      <SelectItem
+                        key={item.id}
+                        value={item.id!}
+                      >
+                        {item.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* Designation */}
           <FormField
             control={form.control}
             name="currentDesignation"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Current Designation</FormLabel>
+                <FormLabel>
+                  Current Designation
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter current designation" {...field} />
+                  <div className="relative">
+                    <Briefcase className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                    <Input
+                      placeholder="Current designation"
+                      className={`${fieldClass} pl-11`}
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
@@ -248,55 +330,89 @@ const TransferPromotionForm = ({ data, update }: Props) => {
             name="newDesignation"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Designation</FormLabel>
+                <FormLabel>
+                  New Designation
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter new designation" {...field} />
+                  <div className="relative">
+                    <MoveRight className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                    <Input
+                      placeholder="New designation"
+                      className={`${fieldClass} pl-11`}
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* Date */}
           <FormField
             control={form.control}
             name="effectiveDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Effective Date</FormLabel>
+                <FormLabel>
+                  Effective Date
+                </FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <div className="relative">
+                    <Calendar className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                    <Input
+                      type="date"
+                      className={`${fieldClass} pl-11`}
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* Status */}
           <FormField
             control={form.control}
             name="status"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status</FormLabel>
+
                 <Select
                   value={field.value}
-                  onValueChange={(value) => field.onChange(value as Status)}
+                  onValueChange={(value) =>
+                    field.onChange(
+                      value as Status
+                    )
+                  }
                 >
                   <FormControl>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger
+                      className={fieldClass}
+                    >
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value={Status.ACTIVE}>Active</SelectItem>
-                    <SelectItem value={Status.INACTIVE}>Inactive</SelectItem>
+
+                  <SelectContent className="rounded-2xl border border-slate-200 shadow-xl">
+                    <SelectItem
+                      value={Status.ACTIVE}
+                    >
+                      Active
+                    </SelectItem>
+                    <SelectItem
+                      value={Status.INACTIVE}
+                    >
+                      Inactive
+                    </SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
+        {/* Reason */}
         <FormField
           control={form.control}
           name="reason"
@@ -304,17 +420,20 @@ const TransferPromotionForm = ({ data, update }: Props) => {
             <FormItem>
               <FormLabel>Reason</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="Enter reason for transfer or promotion"
-                  className="min-h-28"
-                  {...field}
-                />
+                <div className="relative">
+                  <FileText className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                  <Textarea
+                    placeholder="Reason for transfer or promotion"
+                    className={`${textAreaClass} pl-11`}
+                    {...field}
+                  />
+                </div>
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
 
+        {/* Remark */}
         <FormField
           control={form.control}
           name="remark"
@@ -322,27 +441,35 @@ const TransferPromotionForm = ({ data, update }: Props) => {
             <FormItem>
               <FormLabel>Remark</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="Additional notes"
-                  className="min-h-24"
-                  {...field}
-                />
+                <div className="relative">
+                  <StickyNote className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                  <Textarea
+                    placeholder="Additional notes"
+                    className={`${textAreaClass} pl-11`}
+                    {...field}
+                  />
+                </div>
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="flex gap-3">
-          <Button type="submit" disabled={isPending}>
-            {isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <ArrowRight className="mr-2 h-4 w-4" />
-            )}
-            {update ? "Update Transfer & Promotion" : "Save Transfer & Promotion"}
-          </Button>
-        </div>
+        {/* Submit */}
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="h-12 rounded-2xl bg-gradient-to-r from-indigo-600 to-cyan-500 px-8 text-white shadow-md transition-all hover:scale-[1.02] hover:shadow-xl"
+        >
+          {isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <ArrowRight className="mr-2 h-4 w-4" />
+          )}
+
+          {update
+            ? "Update Transfer & Promotion"
+            : "Save Transfer & Promotion"}
+        </Button>
       </form>
     </Form>
   );
