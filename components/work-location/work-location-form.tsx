@@ -9,12 +9,23 @@ import { workLocationSchema } from "@/lib/validators";
 import { WorkLocation } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Status } from "@prisma/client";
-import { ArrowRight, Loader2 } from "lucide-react";
+import {
+  ArrowRight,
+  Loader2,
+  Building2,
+  Hash,
+  MapPin,
+  Landmark,
+  Globe,
+  Mailbox,
+  FileText,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
+
 import { Button } from "../ui/button";
 import {
   Form,
@@ -39,6 +50,12 @@ type Props = {
   update: boolean;
 };
 
+const fieldClass =
+  "h-12 w-full rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:border-cyan-300 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100 outline-none";
+
+const textAreaClass =
+  "min-h-28 w-full rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:border-cyan-300 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100 outline-none";
+
 const WorkLocationForm = ({ data, update }: Props) => {
   const router = useRouter();
   const id = data?.id;
@@ -56,9 +73,9 @@ const WorkLocationForm = ({ data, update }: Props) => {
 
   const [isPending, startTransition] = React.useTransition();
 
-  const onSubmit: SubmitHandler<z.infer<typeof workLocationSchema>> = async (
-    values,
-  ) => {
+  const onSubmit: SubmitHandler<
+    z.infer<typeof workLocationSchema>
+  > = async (values) => {
     startTransition(async () => {
       const res =
         update && id
@@ -75,6 +92,7 @@ const WorkLocationForm = ({ data, update }: Props) => {
       toast.success("Success", {
         description: res.message,
       });
+
       router.push("/work-location");
       router.refresh();
     });
@@ -82,9 +100,12 @@ const WorkLocationForm = ({ data, update }: Props) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Location Name */}
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6"
+      >
+        {/* Grid */}
+        <div className="grid gap-5 md:grid-cols-2">
           <FormField
             control={form.control}
             name="name"
@@ -92,14 +113,20 @@ const WorkLocationForm = ({ data, update }: Props) => {
               <FormItem>
                 <FormLabel>Location Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter work location name" {...field} />
+                  <div className="relative">
+                    <Building2 className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                    <Input
+                      placeholder="Enter location name"
+                      className={`${fieldClass} pl-11`}
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Code */}
           <FormField
             control={form.control}
             name="code"
@@ -107,14 +134,20 @@ const WorkLocationForm = ({ data, update }: Props) => {
               <FormItem>
                 <FormLabel>Location Code</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter location code" {...field} />
+                  <div className="relative">
+                    <Hash className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                    <Input
+                      placeholder="Enter code"
+                      className={`${fieldClass} pl-11`}
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* City */}
           <FormField
             control={form.control}
             name="city"
@@ -122,14 +155,20 @@ const WorkLocationForm = ({ data, update }: Props) => {
               <FormItem>
                 <FormLabel>City</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter city" {...field} />
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                    <Input
+                      placeholder="Enter city"
+                      className={`${fieldClass} pl-11`}
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* State */}
           <FormField
             control={form.control}
             name="state"
@@ -137,14 +176,20 @@ const WorkLocationForm = ({ data, update }: Props) => {
               <FormItem>
                 <FormLabel>State</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter state" {...field} />
+                  <div className="relative">
+                    <Landmark className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                    <Input
+                      placeholder="Enter state"
+                      className={`${fieldClass} pl-11`}
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Country */}
           <FormField
             control={form.control}
             name="country"
@@ -152,14 +197,20 @@ const WorkLocationForm = ({ data, update }: Props) => {
               <FormItem>
                 <FormLabel>Country</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter country" {...field} />
+                  <div className="relative">
+                    <Globe className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                    <Input
+                      placeholder="Enter country"
+                      className={`${fieldClass} pl-11`}
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Postal Code */}
           <FormField
             control={form.control}
             name="postalCode"
@@ -167,35 +218,49 @@ const WorkLocationForm = ({ data, update }: Props) => {
               <FormItem>
                 <FormLabel>Postal Code</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter postal code" {...field} />
+                  <div className="relative">
+                    <Mailbox className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                    <Input
+                      placeholder="Enter postal code"
+                      className={`${fieldClass} pl-11`}
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Status */}
           <FormField
             control={form.control}
             name="status"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status</FormLabel>
+
                 <Select
                   value={field.value}
-                  onValueChange={(value) => field.onChange(value as Status)}
+                  onValueChange={(value) =>
+                    field.onChange(value as Status)
+                  }
                 >
                   <FormControl>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className={fieldClass}>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                   </FormControl>
 
-                  <SelectContent>
-                    <SelectItem value={Status.ACTIVE}>Active</SelectItem>
-                    <SelectItem value={Status.INACTIVE}>Inactive</SelectItem>
+                  <SelectContent className="rounded-2xl border border-slate-200 shadow-xl">
+                    <SelectItem value={Status.ACTIVE}>
+                      Active
+                    </SelectItem>
+                    <SelectItem value={Status.INACTIVE}>
+                      Inactive
+                    </SelectItem>
                   </SelectContent>
                 </Select>
+
                 <FormMessage />
               </FormItem>
             )}
@@ -209,13 +274,18 @@ const WorkLocationForm = ({ data, update }: Props) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Address</FormLabel>
+
               <FormControl>
-                <Textarea
-                  placeholder="Enter full address"
-                  className="min-h-28"
-                  {...field}
-                />
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                  <Textarea
+                    placeholder="Enter full address"
+                    className={`${textAreaClass} pl-11`}
+                    {...field}
+                  />
+                </div>
               </FormControl>
+
               <FormMessage />
             </FormItem>
           )}
@@ -228,27 +298,39 @@ const WorkLocationForm = ({ data, update }: Props) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Remark</FormLabel>
+
               <FormControl>
-                <Textarea
-                  placeholder="Additional notes"
-                  className="min-h-24"
-                  {...field}
-                />
+                <div className="relative">
+                  <FileText className="absolute left-4 top-4 h-4 w-4 text-cyan-500" />
+                  <Textarea
+                    placeholder="Additional notes"
+                    className={`${textAreaClass} pl-11`}
+                    {...field}
+                  />
+                </div>
               </FormControl>
+
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {/* Submit Button */}
-        <div className="flex gap-3">
-          <Button type="submit" disabled={isPending}>
+        {/* Submit */}
+        <div>
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="h-12 rounded-2xl bg-gradient-to-r from-indigo-600 to-cyan-500 px-8 text-white shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-xl"
+          >
             {isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <ArrowRight className="mr-2 h-4 w-4" />
             )}
-            {update ? "Update Work Location" : "Save Work Location"}
+
+            {update
+              ? "Update Work Location"
+              : "Save Work Location"}
           </Button>
         </div>
       </form>

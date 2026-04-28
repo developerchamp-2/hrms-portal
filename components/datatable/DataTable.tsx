@@ -4,10 +4,12 @@ import * as React from "react"
 import {
   ColumnDef,
   SortingState,
+  PaginationState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table"
 
@@ -19,7 +21,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+
 import {
   Card,
   CardContent,
@@ -46,6 +51,12 @@ export function DataTable<TData, TValue>({
   const [globalFilter, setGlobalFilter] = React.useState("")
   const [currentData, setCurrentData] = React.useState<TData[]>(data)
 
+  const [pagination, setPagination] =
+    React.useState<PaginationState>({
+      pageIndex: 0,
+      pageSize: 10,
+    })
+
   React.useEffect(() => {
     setCurrentData(data)
   }, [data])
@@ -66,22 +77,33 @@ export function DataTable<TData, TValue>({
     state: {
       sorting,
       globalFilter,
+      pagination,
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
     globalFilterFn,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   })
 
+  const shouldScroll = columns.length > 9
+
   return (
-    <Card className="rounded-2xl shadow-sm">
-      <CardHeader>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <CardTitle className="text-2xl font-bold">
-            {title}
-          </CardTitle>
+    <Card className="rounded-3xl border border-white/60 bg-white/80 shadow-xl backdrop-blur-md">
+      {/* Header */}
+      <CardHeader className="border-b border-slate-100 pb-5">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <CardTitle className="text-2xl font-bold text-slate-800">
+              {title}
+            </CardTitle>
+            <p className="mt-1 text-sm text-slate-500">
+              Manage and view records easily
+            </p>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             {actions}
@@ -89,38 +111,52 @@ export function DataTable<TData, TValue>({
         </div>
       </CardHeader>
 
-      <CardContent>
-        <div className="space-y-4">
+      {/* Content */}
+      <CardContent className="space-y-5 pt-6">
+        {/* Search */}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Input
-            placeholder="Search..."
+            placeholder="Search records..."
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
-            className="max-w-sm"
+            className="h-11 max-w-sm rounded-2xl border-slate-200 bg-slate-50 px-4 focus-visible:ring-2 focus-visible:ring-indigo-500"
           />
 
-          <div className="rounded-xl border overflow-x-auto">
-            <Table>
-              <TableHeader>
+          <div className="text-sm text-slate-500">
+            Total: {table.getFilteredRowModel().rows.length}
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className={shouldScroll ? "overflow-x-auto" : "overflow-hidden"}>
+            <Table className={shouldScroll ? "min-w-[1200px]" : "w-full"}>
+              <TableHeader className="bg-gradient-to-r from-indigo-600 to-cyan-500">
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
+                  <TableRow
+                    key={headerGroup.id}
+                    className="border-b-0 hover:bg-transparent"
+                  >
                     {headerGroup.headers.map((header) => (
                       <TableHead
                         key={header.id}
                         onClick={header.column.getToggleSortingHandler()}
-                        className="cursor-pointer select-none whitespace-nowrap"
+                        className="cursor-pointer whitespace-nowrap px-4 py-4 text-sm font-semibold text-white"
                       >
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           {flexRender(
                             header.column.columnDef.header,
                             header.getContext()
                           )}
 
                           {{
-                            asc: "🔼",
-                            desc: "🔽",
+                            asc: "▲",
+                            desc: "▼",
                           }[
                             header.column.getIsSorted() as string
-                          ] ?? null}
+                          ] ?? (
+                            <span className="text-white/50">↕</span>
+                          )}
                         </div>
                       </TableHead>
                     ))}
@@ -130,19 +166,21 @@ export function DataTable<TData, TValue>({
 
               <TableBody>
                 {table.getRowModel().rows.length > 0 ? (
-                  table.getRowModel().rows.map((row) => (
+                  table.getRowModel().rows.map((row, index) => (
                     <TableRow
                       key={row.id}
-                      className={
+                      className={`border-b border-slate-100 transition-all hover:bg-cyan-50/50 ${
+                        index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
+                      } ${
                         rowClassName
                           ? rowClassName(row.original)
                           : ""
-                      }
+                      }`}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
                           key={cell.id}
-                          className="whitespace-nowrap"
+                          className="whitespace-nowrap px-4 py-4 text-sm text-slate-700"
                         >
                           {flexRender(
                             cell.column.columnDef.cell,
@@ -156,14 +194,56 @@ export function DataTable<TData, TValue>({
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
-                      className="h-24 text-center"
+                      className="h-28 text-center text-slate-500"
                     >
-                      No results.
+                      No results found.
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
+          </div>
+        </div>
+
+        {/* Footer / Pagination */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <span className="text-sm text-slate-500">
+            Showing{" "}
+            {table.getState().pagination.pageIndex *
+              table.getState().pagination.pageSize +
+              1}
+            -
+            {Math.min(
+              (table.getState().pagination.pageIndex + 1) *
+                table.getState().pagination.pageSize,
+              table.getFilteredRowModel().rows.length
+            )}{" "}
+            of {table.getFilteredRowModel().rows.length}
+          </span>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="rounded-xl"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Previous
+            </Button>
+
+            <span className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-600">
+              Page {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount()}
+            </span>
+
+            <Button
+              variant="outline"
+              className="rounded-xl"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+            </Button>
           </div>
         </div>
       </CardContent>
