@@ -8,6 +8,7 @@ import {
   Briefcase,
   Building2,
   CalendarCheck,
+  CalendarPlus,
   FolderArchive,
   Gauge,
   IdCard,
@@ -104,6 +105,11 @@ const menu: MenuGroup[] = [
         url: "/attendance",
         icon: <CalendarCheck size={18} />,
       },
+      {
+        name: "Leave Requests",
+        url: "/leave-requests",
+        icon: <CalendarPlus size={18} />,
+      },
     ],
   },
   {
@@ -164,9 +170,14 @@ function getMenuByRole(role?: SidebarRole): MenuGroup[] {
             icon: <Users2Icon size={18} />,
           },
           {
-            name: "Attendance",
-            url: "/attendance",
+            name: "My Attendance",
+            url: "/attendance/my",
             icon: <CalendarCheck size={18} />,
+          },
+          {
+            name: "Leave Requests",
+            url: "/leave-requests/my",
+            icon: <CalendarPlus size={18} />,
           },
         ],
       },

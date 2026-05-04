@@ -11,7 +11,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getAttendanceDashboard } from "@/lib/actions/attendance";
-import { getRoutePermissions } from "@/lib/rbac";
+import {
+  canManageAllAttendance,
+  getRoutePermissions,
+  getUserPermissions,
+} from "@/lib/rbac";
 
 function statusClass(status: string) {
   if (status === "PRESENT") return "bg-emerald-100 text-emerald-700";
@@ -22,10 +26,17 @@ function statusClass(status: string) {
 }
 
 export default async function AttendancePage() {
-  const permissions = await getRoutePermissions("/attendance");
+  const [permissions, user] = await Promise.all([
+    getRoutePermissions("/attendance"),
+    getUserPermissions(),
+  ]);
 
   if (!permissions.canView) {
     redirect("/404");
+  }
+
+  if (!canManageAllAttendance(user?.role?.name)) {
+    redirect("/attendance/my");
   }
 
   const dashboard = await getAttendanceDashboard();
@@ -46,7 +57,7 @@ export default async function AttendancePage() {
             <Button asChild className="bg-blue-600 hover:bg-blue-700">
               <Link href="/attendance/mark">
                 <LogIn />
-                Mark Attendance
+                My Check In
               </Link>
             </Button>
           )}
@@ -108,7 +119,7 @@ export default async function AttendancePage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-5">
-          <div className="overflow-x-auto">
+          <div className="max-w-full overflow-x-auto">
             <table className="w-full min-w-[720px] text-sm">
               <thead>
                 <tr className="border-b border-slate-100 text-left text-slate-500">

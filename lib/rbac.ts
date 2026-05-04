@@ -43,12 +43,32 @@ export async function getUserPermissions() {
   });
 }
 
+export function isAdminRole(roleName?: string | null) {
+  return !!roleName?.toLowerCase().includes("admin");
+}
+
+export function isHrRole(roleName?: string | null) {
+  return !!roleName?.toLowerCase().includes("hr");
+}
+
+export function isEmployeeRole(roleName?: string | null) {
+  return roleName?.toLowerCase() === "employee";
+}
+
+export function canManageAllAttendance(roleName?: string | null) {
+  return isAdminRole(roleName) || isHrRole(roleName);
+}
+
+function isLeaveRequestRoute(route: string) {
+  return route === "/leave-requests" || route === "/leave-requests/my";
+}
+
 function isAdminUser(user: UserWithPermissions | null) {
   return !!user?.role?.name?.toLowerCase().includes("admin");
 }
 
 function isEmployeeUser(user: UserWithPermissions | null) {
-  return user?.role?.name?.toLowerCase() === "employee";
+  return isEmployeeRole(user?.role?.name);
 }
 
 function getModulePermission(
@@ -87,9 +107,16 @@ export async function canAccess(route: string, action: PermissionAction) {
     return true;
   }
 
+  if (canManageAllAttendance(user.role?.name) && route === "/leave-requests") {
+    return action === "view" || action === "edit";
+  }
+
   if (
     isEmployeeUser(user) &&
-    (route === "/employee-documents" || route === "/attendance")
+    (route === "/employee-documents" ||
+      route === "/attendance" ||
+      route === "/attendance/my" ||
+      isLeaveRequestRoute(route))
   ) {
     return action !== "delete";
   }
@@ -119,9 +146,21 @@ export async function getRoutePermissions(route: string) {
     };
   }
 
+  if (canManageAllAttendance(user.role?.name) && route === "/leave-requests") {
+    return {
+      canView: true,
+      canCreate: false,
+      canEdit: true,
+      canDelete: false,
+    };
+  }
+
   if (
     isEmployeeUser(user) &&
-    (route === "/employee-documents" || route === "/attendance")
+    (route === "/employee-documents" ||
+      route === "/attendance" ||
+      route === "/attendance/my" ||
+      isLeaveRequestRoute(route))
   ) {
     return {
       canView: true,
@@ -164,7 +203,51 @@ export async function getAccessibleRoutes() {
   }
 
   if (isAdminUser(user)) {
-    return user.role?.roleModules.map((roleModule) => roleModule.module.route) || [];
+    const routes = new Set(
+      user.role?.roleModules.map((roleModule) => roleModule.module.route) || []
+    );
+    routes.add("/leave-requests");
+    return Array.from(routes);
+  }
+
+  if (isEmployeeUser(user)) {
+    const routes = new Set(
+      user.role?.roleModules
+        .filter((roleModule) => {
+          return (
+            roleModule.canView ||
+            roleModule.canCreate ||
+            roleModule.canEdit ||
+            roleModule.canDelete
+          );
+        })
+        .map((roleModule) => roleModule.module.route) || []
+    );
+
+    routes.add("/employee-documents");
+    routes.add("/attendance/my");
+    routes.add("/leave-requests/my");
+
+    return Array.from(routes);
+  }
+
+  if (canManageAllAttendance(user.role?.name)) {
+    const routes = new Set(
+      user.role?.roleModules
+        .filter((roleModule) => {
+          return (
+            roleModule.canView ||
+            roleModule.canCreate ||
+            roleModule.canEdit ||
+            roleModule.canDelete
+          );
+        })
+        .map((roleModule) => roleModule.module.route) || []
+    );
+
+    routes.add("/leave-requests");
+
+    return Array.from(routes);
   }
 
   return (

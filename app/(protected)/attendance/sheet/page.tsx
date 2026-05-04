@@ -5,7 +5,11 @@ import {
   getAttendanceOptions,
   getMonthlyAttendance,
 } from "@/lib/actions/attendance";
-import { getUserPermissions, getRoutePermissions } from "@/lib/rbac";
+import {
+  canManageAllAttendance,
+  getRoutePermissions,
+  getUserPermissions,
+} from "@/lib/rbac";
 
 export default async function AttendanceSheetPage() {
   const permissions = await getRoutePermissions("/attendance");
@@ -15,6 +19,10 @@ export default async function AttendanceSheetPage() {
   }
 
   const user = await getUserPermissions();
+  if (!canManageAllAttendance(user?.role?.name)) {
+    redirect("/404");
+  }
+
   const canFilterEmployees = user?.role?.name?.toLowerCase() !== "employee";
   const [sheet, options] = await Promise.all([
     getMonthlyAttendance(),

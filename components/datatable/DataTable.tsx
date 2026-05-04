@@ -3,6 +3,7 @@
 import * as React from "react"
 import {
   ColumnDef,
+  Row,
   SortingState,
   PaginationState,
   flexRender,
@@ -62,7 +63,7 @@ export function DataTable<TData, TValue>({
   }, [data])
 
   const globalFilterFn = (
-    row: any,
+    row: Row<TData>,
     columnId: string,
     filterValue: string
   ) => {
@@ -92,7 +93,7 @@ export function DataTable<TData, TValue>({
   const shouldScroll = columns.length > 9
 
   return (
-    <Card className="rounded-3xl border border-white/60 bg-white/80 shadow-xl backdrop-blur-md">
+    <Card className="min-w-0 rounded-3xl border border-white/60 bg-white/80 shadow-xl backdrop-blur-md">
       {/* Header */}
       <CardHeader className="border-b border-slate-100 pb-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -112,7 +113,7 @@ export function DataTable<TData, TValue>({
       </CardHeader>
 
       {/* Content */}
-      <CardContent className="space-y-5 pt-6">
+      <CardContent className="min-w-0 space-y-5 pt-6">
         {/* Search */}
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Input
@@ -128,8 +129,8 @@ export function DataTable<TData, TValue>({
         </div>
 
         {/* Table */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className={shouldScroll ? "overflow-x-auto" : "overflow-hidden"}>
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className={shouldScroll ? "max-w-full overflow-x-auto" : "overflow-hidden"}>
             <Table className={shouldScroll ? "min-w-[1200px]" : "w-full"}>
               <TableHeader className="bg-gradient-to-r from-indigo-600 to-cyan-500">
                 {table.getHeaderGroups().map((headerGroup) => (

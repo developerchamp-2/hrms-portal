@@ -42,13 +42,13 @@ export default async function ProtectedLayout({
         accessibleRoutes={accessibleRoutes}
       />
 
-      <SidebarInset>
+      <SidebarInset className="min-w-0 overflow-x-hidden">
         <header className="sticky top-0 z-40 flex h-14 items-center border-b bg-white px-4">
           <SidebarTrigger />
         </header>
 
-        <div className="flex flex-1 flex-col">
-          <div className="flex flex-col gap-4 p-4 md:p-6">
+        <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
+          <div className="flex min-w-0 flex-col gap-4 overflow-x-hidden p-4 md:p-6">
             {children}
           </div>
         </div>

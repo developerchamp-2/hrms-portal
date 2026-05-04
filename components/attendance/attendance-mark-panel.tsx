@@ -72,6 +72,7 @@ export function AttendanceMarkPanel({
 
   const hasCheckedIn = !!record?.checkIn;
   const hasCheckedOut = !!record?.checkOut;
+  const canMarkAttendance = canCreate && !!selectedEmployeeId;
 
   return (
     <Card className="border-slate-200 bg-white shadow-sm">
@@ -133,12 +134,19 @@ export function AttendanceMarkPanel({
           onChange={(event) => setRemarks(event.target.value)}
           placeholder="Remarks"
           className="min-h-24"
-          disabled={!canCreate || hasCheckedOut}
+          disabled={!canMarkAttendance || hasCheckedOut}
         />
+
+        {!selectedEmployeeId && (
+          <p className="text-sm text-rose-600">
+            Your user is not linked to an employee profile. Please link an
+            employee profile before checking in.
+          </p>
+        )}
 
         <Button
           onClick={mark}
-          disabled={!canCreate || isPending || hasCheckedOut}
+          disabled={!canMarkAttendance || isPending || hasCheckedOut}
           className="h-10 bg-blue-600 px-4 hover:bg-blue-700"
         >
           {hasCheckedIn ? <LogOut /> : <LogIn />}

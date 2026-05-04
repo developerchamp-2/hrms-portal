@@ -81,6 +81,11 @@
         description: "Attendance Management Module",
         route: "/attendance",
       },
+      {
+        name: "Leave Requests",
+        description: "Leave Request Management Module",
+        route: "/leave-requests",
+      },
       { name: "Company", description: "Company Module", route: "/companies" },
       { name: "Employer", description: "Employer Module", route: "/employers" },
       {
@@ -180,16 +185,20 @@
           },
         },
         update: {
-          canView: mod.route === "/attendance",
-          canCreate: mod.route === "/attendance",
+          canView:
+            mod.route === "/attendance" || mod.route === "/leave-requests",
+          canCreate:
+            mod.route === "/attendance" || mod.route === "/leave-requests",
           canEdit: mod.route === "/attendance",
           canDelete: false,
         },
         create: {
           roleId: employeeRole.id,
           moduleId: mod.id,
-          canView: mod.route === "/attendance",
-          canCreate: mod.route === "/attendance",
+          canView:
+            mod.route === "/attendance" || mod.route === "/leave-requests",
+          canCreate:
+            mod.route === "/attendance" || mod.route === "/leave-requests",
           canEdit: mod.route === "/attendance",
           canDelete: false,
         },

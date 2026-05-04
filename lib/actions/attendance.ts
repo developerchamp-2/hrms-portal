@@ -5,7 +5,10 @@ import { revalidatePath } from "next/cache";
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getRoutePermissions } from "@/lib/rbac";
+import {
+  canManageAllAttendance,
+  getRoutePermissions,
+} from "@/lib/rbac";
 import { formatError } from "@/lib/utils";
 
 const ATTENDANCE_ROUTE = "/attendance";
@@ -204,6 +207,7 @@ async function getCurrentUser() {
         select: {
           id: true,
           employeeName: true,
+          departmentId: true,
         },
       },
     },
@@ -236,15 +240,11 @@ async function requireAttendancePermission(
   return getCurrentUser();
 }
 
-function isEmployeeRole(roleName?: string | null) {
-  return roleName?.toLowerCase() === "employee";
-}
-
 function requireSelfScope(
   currentUser: Awaited<ReturnType<typeof getCurrentUser>>,
   employeeId?: string,
 ) {
-  if (!isEmployeeRole(currentUser.role?.name)) {
+  if (canManageAllAttendance(currentUser.role?.name)) {
     return employeeId;
   }
 
@@ -261,8 +261,17 @@ function requireSelfScope(
 
 export async function getAttendanceOptions() {
   const currentUser = await requireAttendancePermission("view");
-  const scopedEmployeeId = isEmployeeRole(currentUser.role?.name)
+  const employeeScoped = !canManageAllAttendance(currentUser.role?.name);
+
+  if (employeeScoped && !currentUser.employeeProfile?.id) {
+    throw new Error("Employee profile not found for current user");
+  }
+
+  const scopedEmployeeId = employeeScoped
     ? currentUser.employeeProfile?.id
+    : undefined;
+  const scopedDepartmentId = employeeScoped
+    ? currentUser.employeeProfile?.departmentId
     : undefined;
 
   const [employees, departments] = await Promise.all([
@@ -277,6 +286,7 @@ export async function getAttendanceOptions() {
       },
     }),
     prisma.department.findMany({
+      where: scopedDepartmentId ? { id: scopedDepartmentId } : undefined,
       orderBy: { name: "asc" },
       select: {
         id: true,
@@ -345,6 +355,7 @@ export async function markAttendance(
     });
 
     revalidatePath(ATTENDANCE_ROUTE);
+    revalidatePath("/attendance/my");
     revalidatePath("/attendance/mark");
     revalidatePath("/attendance/sheet");
 
@@ -376,7 +387,7 @@ export async function getMonthlyAttendance(
   const employees = await prisma.employeeProfile.findMany({
     where: {
       ...(employeeId ? { id: employeeId } : {}),
-      ...(filters.departmentId && !isEmployeeRole(currentUser.role?.name)
+      ...(filters.departmentId && canManageAllAttendance(currentUser.role?.name)
         ? { departmentId: filters.departmentId }
         : {}),
     },
@@ -475,8 +486,8 @@ export async function updateAttendance(
     const currentUser = await requireAttendancePermission("edit");
     requireSelfScope(currentUser, input.employeeId);
 
-    if (isEmployeeRole(currentUser.role?.name)) {
-      throw new Error("Employees cannot edit attendance records directly");
+    if (!canManageAllAttendance(currentUser.role?.name)) {
+      throw new Error("Only Admin or HR can edit attendance records directly");
     }
 
     const existing = await prisma.attendance.findUnique({
@@ -524,6 +535,7 @@ export async function updateAttendance(
     });
 
     revalidatePath(ATTENDANCE_ROUTE);
+    revalidatePath("/attendance/my");
     revalidatePath("/attendance/sheet");
 
     return {
@@ -552,6 +564,7 @@ export async function deleteAttendance(id: string): Promise<ActionResponse> {
     });
 
     revalidatePath(ATTENDANCE_ROUTE);
+    revalidatePath("/attendance/my");
     revalidatePath("/attendance/sheet");
 
     return {
@@ -569,9 +582,7 @@ export async function deleteAttendance(id: string): Promise<ActionResponse> {
 export async function getAttendanceDashboard() {
   const currentUser = await requireAttendancePermission("view");
   const today = toDateOnly(new Date());
-  const scopedEmployeeId = isEmployeeRole(currentUser.role?.name)
-    ? currentUser.employeeProfile?.id
-    : undefined;
+  const scopedEmployeeId = requireSelfScope(currentUser);
 
   const [todayRecords, monthlySheet] = await Promise.all([
     prisma.attendance.findMany({

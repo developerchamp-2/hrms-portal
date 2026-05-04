@@ -27,6 +27,8 @@ type AttendanceSheetProps = {
   departments: Option[];
   canFilterEmployees: boolean;
   showExport?: boolean;
+  title?: string;
+  compact?: boolean;
 };
 
 const statusLabels: Record<string, string> = {
@@ -45,6 +47,15 @@ const statusClasses: Record<string, string> = {
   HALF_DAY: "bg-sky-100 text-sky-700",
   HOLIDAY: "bg-violet-100 text-violet-700",
   "": "bg-slate-100 text-slate-400",
+};
+
+const statusTextClasses: Record<string, string> = {
+  PRESENT: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  ABSENT: "border-rose-200 bg-rose-50 text-rose-700",
+  LEAVE: "border-amber-200 bg-amber-50 text-amber-700",
+  HALF_DAY: "border-sky-200 bg-sky-50 text-sky-700",
+  HOLIDAY: "border-violet-200 bg-violet-50 text-violet-700",
+  "": "border-slate-200 bg-slate-50 text-slate-400",
 };
 
 function exportCsv(sheet: AttendanceMonthSheet) {
@@ -99,6 +110,8 @@ export function AttendanceSheet({
   departments,
   canFilterEmployees,
   showExport = false,
+  title = "Monthly Attendance Sheet",
+  compact = false,
 }: AttendanceSheetProps) {
   const [sheet, setSheet] = React.useState(initialSheet);
   const [year, setYear] = React.useState(String(initialSheet.year));
@@ -108,6 +121,20 @@ export function AttendanceSheet({
   const [isPending, startTransition] = React.useTransition();
 
   const days = Array.from({ length: sheet.daysInMonth }, (_, index) => index + 1);
+  const compactRow = sheet.rows[0];
+  const firstWeekday = new Date(sheet.year, sheet.month - 1, 1).getDay();
+  const calendarCells = [
+    ...Array.from({ length: firstWeekday }, (_, index) => ({
+      key: `blank-${index}`,
+      day: 0,
+      status: "" as const,
+    })),
+    ...days.map((day) => ({
+      key: `day-${day}`,
+      day,
+      status: compactRow?.days[day] ?? "",
+    })),
+  ];
 
   const applyFilters = () => {
     startTransition(async () => {
@@ -135,7 +162,7 @@ export function AttendanceSheet({
     <Card className="border-slate-200 bg-white shadow-sm">
       <CardHeader className="border-b border-slate-100">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <CardTitle className="text-xl">Monthly Attendance Sheet</CardTitle>
+          <CardTitle className="text-xl">{title}</CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             <input
               value={year}
@@ -199,7 +226,93 @@ export function AttendanceSheet({
         </div>
       </CardHeader>
       <CardContent className="pt-5">
-        <div className="overflow-x-auto rounded-lg border border-slate-200">
+        {compact ? (
+          <div className="space-y-5">
+            {compactRow ? (
+              <>
+                <div className="grid gap-3 sm:grid-cols-5">
+                  <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-3">
+                    <p className="text-xs font-medium uppercase text-emerald-700">
+                      Present
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-emerald-700">
+                      {compactRow.totals.present}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-amber-100 bg-amber-50 p-3">
+                    <p className="text-xs font-medium uppercase text-amber-700">
+                      Leave
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-amber-700">
+                      {compactRow.totals.leaves}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-rose-100 bg-rose-50 p-3">
+                    <p className="text-xs font-medium uppercase text-rose-700">
+                      Absent
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-rose-700">
+                      {compactRow.totals.absents}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-sky-100 bg-sky-50 p-3">
+                    <p className="text-xs font-medium uppercase text-sky-700">
+                      Half Day
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-sky-700">
+                      {compactRow.totals.halfDays}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-violet-100 bg-violet-50 p-3">
+                    <p className="text-xs font-medium uppercase text-violet-700">
+                      Holiday
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-violet-700">
+                      {compactRow.totals.holidays}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-7 gap-2">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                    (weekday) => (
+                      <div
+                        key={weekday}
+                        className="text-center text-xs font-semibold uppercase text-slate-500"
+                      >
+                        {weekday}
+                      </div>
+                    ),
+                  )}
+                  {calendarCells.map((cell) =>
+                    cell.day ? (
+                      <div
+                        key={cell.key}
+                        className={`min-h-20 rounded-lg border p-2 ${statusTextClasses[cell.status]}`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-sm font-semibold">
+                            {cell.day}
+                          </span>
+                          <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs font-semibold">
+                            {statusLabels[cell.status] || "-"}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div key={cell.key} className="min-h-20" />
+                    ),
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="rounded-lg border border-dashed border-slate-300 px-3 py-10 text-center text-sm text-slate-500">
+                No attendance records found.
+              </div>
+            )}
+          </div>
+        ) : (
+        <div className="max-w-full overflow-x-auto rounded-lg border border-slate-200">
           <table className="min-w-[1100px] w-full border-collapse text-sm">
             <thead className="bg-slate-900 text-white">
               <tr>
@@ -261,6 +374,7 @@ export function AttendanceSheet({
             </tbody>
           </table>
         </div>
+        )}
       </CardContent>
     </Card>
   );

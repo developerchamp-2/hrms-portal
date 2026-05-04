@@ -3,9 +3,12 @@ import { redirect } from "next/navigation";
 import { AttendanceMarkPanel } from "@/components/attendance/attendance-mark-panel";
 import {
   getAttendanceDashboard,
-  getAttendanceOptions,
 } from "@/lib/actions/attendance";
-import { getRoutePermissions, getUserPermissions } from "@/lib/rbac";
+import {
+  canManageAllAttendance,
+  getRoutePermissions,
+  getUserPermissions,
+} from "@/lib/rbac";
 
 export default async function MarkAttendancePage() {
   const permissions = await getRoutePermissions("/attendance");
@@ -14,14 +17,13 @@ export default async function MarkAttendancePage() {
     redirect("/404");
   }
 
-  const [dashboard, options, user] = await Promise.all([
-    getAttendanceDashboard(),
-    getAttendanceOptions(),
-    getUserPermissions(),
-  ]);
-  const canChooseEmployee = user?.role?.name?.toLowerCase() !== "employee";
-  const employeeId =
-    dashboard.currentEmployeeId || options.employees.at(0)?.id || "";
+  const user = await getUserPermissions();
+  if (!canManageAllAttendance(user?.role?.name)) {
+    redirect("/attendance/my");
+  }
+
+  const dashboard = await getAttendanceDashboard();
+  const employeeId = dashboard.currentEmployeeId;
   const todayRecord = dashboard.todayRecords.find(
     (record) => record.employeeId === employeeId,
   );
@@ -30,18 +32,16 @@ export default async function MarkAttendancePage() {
     <div className="mx-auto w-full max-w-4xl space-y-5">
       <div>
         <h1 className="text-2xl font-semibold text-slate-900">
-          Mark Attendance
+          My Check In
         </h1>
         <p className="text-sm text-slate-500">
-          Record check-in and check-out for the current day.
+          Record your own check-in and check-out for the current day.
         </p>
       </div>
       <AttendanceMarkPanel
         employeeId={employeeId}
-        employees={options.employees}
         todayRecord={todayRecord}
         canCreate={permissions.canCreate}
-        canChooseEmployee={canChooseEmployee}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { getLeaveDashboard } from "@/lib/actions/leave-requests";
 import { prisma } from "@/lib/prisma";
 import {
   ArrowRightLeft,
@@ -211,6 +212,7 @@ export default async function EmployeeDashboardPage() {
       .filter(Boolean)
       .join(" ") ||
     "Employee";
+  const leaveSummary = await getLeaveDashboard();
 
   const quickStats = [
     {
@@ -237,6 +239,12 @@ export default async function EmployeeDashboardPage() {
       icon: FileText,
       tone: "bg-rose-50 text-rose-700",
     },
+    {
+      title: "Pending Leave",
+      value: String(leaveSummary.pending),
+      icon: CalendarDays,
+      tone: "bg-violet-50 text-violet-700",
+    },
   ];
 
   return (
@@ -261,6 +269,13 @@ export default async function EmployeeDashboardPage() {
                 <div className="rounded-full border border-white/20 bg-white/10 px-4 py-2">
                   Joined {formatDate(employeeProfile.joiningDate)}
                 </div>
+                <Link
+                  href="/leave-requests/my"
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 font-medium text-blue-700 shadow-sm transition hover:bg-cyan-50"
+                >
+                  <Plus className="h-4 w-4" />
+                  Apply Leave
+                </Link>
               </div>
             </div>
 

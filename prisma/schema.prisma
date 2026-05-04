@@ -72,6 +72,7 @@ model User {
 
   employeeProfile EmployeeProfile?
   projects        Project[]
+  reviewedLeaveRequests LeaveRequest[]
 }
 
 model Company {
@@ -240,6 +241,7 @@ model EmployeeProfile {
   tasks              Task[]
   taskComments       TaskComment[]
   attendances        Attendance[]
+  leaveRequests      LeaveRequest[]
 }
 
 model Module {
@@ -393,4 +395,44 @@ enum AttendanceStatus {
   LEAVE
   HALF_DAY
   HOLIDAY
+}
+
+enum LeaveType {
+  CASUAL
+  SICK
+  EARNED
+  UNPAID
+  OTHER
+}
+
+enum LeaveRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model LeaveRequest {
+  id         String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId String             @db.Uuid
+  leaveType  LeaveType
+  startDate  DateTime           @db.Date
+  endDate    DateTime           @db.Date
+  totalDays  Int
+  reason     String
+  status     LeaveRequestStatus @default(PENDING)
+
+  reviewedById String?   @db.Uuid
+  reviewedAt   DateTime?
+  reviewRemark String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employee   EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewedBy User?           @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([startDate, endDate])
 }
