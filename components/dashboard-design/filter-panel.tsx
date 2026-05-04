@@ -57,7 +57,7 @@ export default function   FilterPanel({
   }, [filters, onApplyFilters]);
 
   return (
-    <div className="w-80 h-screen overflow-y-auto border-r p-4 space-y-4 bg-white sticky top-0">
+    <div className="w-60 h-screen overflow-y-auto border-r p-4 space-y-4 bg-white sticky top-0">
       <div className="space-y-2">
         <h2 className="font-semibold text-lg text-gray-900">Filters</h2>
         <p className="text-sm text-gray-500">
@@ -66,7 +66,7 @@ export default function   FilterPanel({
         </p>
       </div>
 
-      <Accordion type="multiple" defaultValue={["identity", "organization"]}>
+      <Accordion type="multiple" defaultValue={[]}>
         {/* 🔍 Employee Identity */}
         <AccordionItem value="identity">
           <AccordionTrigger className="text-sm font-semibold">

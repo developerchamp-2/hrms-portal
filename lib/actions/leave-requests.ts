@@ -307,23 +307,33 @@ export async function getLeaveRequests(): Promise<LeaveRequestRecord[]> {
 export async function getLeaveDashboard() {
   const currentUser = await getCurrentUser();
   const canReview = canManageAllAttendance(currentUser.role?.name);
-  const where = canReview
-    ? undefined
-    : { employeeId: currentUser.employeeProfile?.id };
 
-  if (!canReview && !currentUser.employeeProfile?.id) {
+  const employeeId = currentUser.employeeProfile?.id;
+
+  // ✅ Safety check
+  if (!canReview && !employeeId) {
     throw new Error("Employee profile not found for current user");
   }
 
+  // ✅ Proper typed where builder
+  const buildWhere = (
+    status: LeaveRequestStatus
+  ): Prisma.LeaveRequestWhereInput => {
+    return canReview
+      ? { status }
+      : { employeeId: employeeId!, status };
+  };
+
+  // ✅ Parallel queries
   const [pending, approved, rejected] = await Promise.all([
     prisma.leaveRequest.count({
-      where: { ...where, status: LeaveRequestStatus.PENDING },
+      where: buildWhere(LeaveRequestStatus.PENDING),
     }),
     prisma.leaveRequest.count({
-      where: { ...where, status: LeaveRequestStatus.APPROVED },
+      where: buildWhere(LeaveRequestStatus.APPROVED),
     }),
     prisma.leaveRequest.count({
-      where: { ...where, status: LeaveRequestStatus.REJECTED },
+      where: buildWhere(LeaveRequestStatus.REJECTED),
     }),
   ]);
 

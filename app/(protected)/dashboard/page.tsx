@@ -18,7 +18,7 @@ import {
 import { getEmployeeProfiles } from "@/lib/actions/employee-profiles";
 import { getDepartments } from "@/lib/actions/department";
 import { getProjects } from "@/lib/actions/projects";
-import Link from "next/link";
+
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -28,35 +28,21 @@ export default async function DashboardPage() {
     redirect("/employee-dashboard");
   }
 
-<<<<<<< Updated upstream
-  let employees = await getEmployeeProfiles();
-  let departments = await getDepartments();
-  let projects = await getProjects();
+  const leaveSummary = await getLeaveDashboard();
+  const employees = await getEmployeeProfiles();
+  const departments = await getDepartments();
+  const projects = await getProjects();
 
   const stats = [
     { title: "Total Employees", value: employees.length, icon: Users },
-    // { title: "Active Employees", value: "105", icon: Users },
-    // { title: "New Hires", value: "6", icon: UserPlus },
-    // { title: "Attrition", value: "2", icon: UserMinus },
-    { title: "Departments", value: departments.length, icon: Building },
-    { title: "Projects", value: projects.length, icon: Briefcase },
-    // { title: "Payroll", value: "₹5.2L", icon: IndianRupee },
-    // { title: "Compliance", value: "92%", icon: ShieldCheck },
-    // { title: "Approvals", value: "7", icon: Clock },
-=======
-  const leaveSummary = await getLeaveDashboard();
-
-  const stats = [
-    { title: "Total Employees", value: "120", icon: Users },
     { title: "Active Employees", value: "105", icon: Users },
     { title: "New Hires", value: "6", icon: UserPlus },
     { title: "Attrition", value: "2", icon: UserMinus },
-    { title: "Departments", value: "5", icon: Building },
-    { title: "Projects", value: "8", icon: Briefcase },
+    { title: "Departments", value: departments.length, icon: Building },
+    { title: "Projects", value: projects.length, icon: Briefcase },
     { title: "Payroll", value: "₹5.2L", icon: IndianRupee },
     { title: "Compliance", value: "92%", icon: ShieldCheck },
     { title: "Approvals", value: String(leaveSummary.pending), icon: Clock },
->>>>>>> Stashed changes
     { title: "Attendance", value: "98", icon: CalendarCheck },
     // { title: "Growth", value: "+12%", icon: TrendingUp },
     // { title: "Alerts", value: "3", icon: AlertTriangle },

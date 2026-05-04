@@ -65,10 +65,7 @@ export default function DashboardDesignContent({
         onResetFilters={handleResetFilters}
       />
       <div className="flex-1 overflow-auto">
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Search Employee</h1>
-          </div>
+        <div className="p-2 mt-5">
           <EmployeeList employees={employees} isLoading={isLoading} />
         </div>
       </div>

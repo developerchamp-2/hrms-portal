@@ -254,7 +254,7 @@ export function AppSidebar({
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-indigo-200/40 bg-gradient-to-b from-indigo-400 via-blue-400 to-cyan-300 text-white shadow-xl"
+      className="border-r z-100 border-indigo-200/40 bg-gradient-to-b from-indigo-400 via-blue-400 to-cyan-300 text-white shadow-xl"
       {...props}
     >
       <SidebarHeader className="border-b border-white/20 px-3 py-3">

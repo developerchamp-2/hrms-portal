@@ -42,13 +42,14 @@ export default async function ProtectedLayout({
         accessibleRoutes={accessibleRoutes}
       />
 
-      <SidebarInset className="min-w-0 overflow-x-hidden">
+      <SidebarInset className="flex h-screen min-w-0 flex-col overflow-hidden">
         <header className="sticky top-0 z-40 flex h-14 items-center border-b bg-white px-4">
           <SidebarTrigger />
         </header>
 
-        <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
-          <div className="flex min-w-0 flex-col gap-4 overflow-x-hidden p-4 md:p-6">
+        {/* ✅ Make this the scroll area */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex min-w-0 flex-col gap-4 p-2 mt-2">
             {children}
           </div>
         </div>
