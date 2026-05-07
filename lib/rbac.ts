@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "./prisma";
+import { isCurrentEmployeeManager } from "./employee-job-role";
 
 export type PermissionAction = "view" | "create" | "edit" | "delete";
 
@@ -84,6 +85,10 @@ function isLeaveRequestRoute(route: string) {
   return route === "/leave-requests" || route === "/leave-requests/my";
 }
 
+function isProjectManagementRoute(route: string) {
+  return route === "/projects" || route === "/project-members";
+}
+
 function isAdminUser(user: UserWithPermissions | null) {
   return !!user?.role?.name?.toLowerCase().includes("admin");
 }
@@ -142,6 +147,14 @@ export async function canAccess(route: string, action: PermissionAction) {
     return action !== "delete";
   }
 
+  if (
+    isEmployeeUser(user) &&
+    isProjectManagementRoute(route) &&
+    (await isCurrentEmployeeManager())
+  ) {
+    return action !== "delete";
+  }
+
   const permission = getModulePermission(user, route);
   return readPermission(permission, action);
 }
@@ -182,6 +195,19 @@ export async function getRoutePermissions(route: string) {
       route === "/attendance" ||
       route === "/attendance/my" ||
       isLeaveRequestRoute(route))
+  ) {
+    return {
+      canView: true,
+      canCreate: true,
+      canEdit: true,
+      canDelete: false,
+    };
+  }
+
+  if (
+    isEmployeeUser(user) &&
+    isProjectManagementRoute(route) &&
+    (await isCurrentEmployeeManager())
   ) {
     return {
       canView: true,
@@ -253,6 +279,11 @@ export async function getAccessibleRoutes() {
     routes.add("/employee-documents");
     routes.add("/attendance/my");
     routes.add("/leave-requests/my");
+
+    if (await isCurrentEmployeeManager()) {
+      routes.add("/projects");
+      routes.add("/project-members");
+    }
 
     return Array.from(routes);
   }

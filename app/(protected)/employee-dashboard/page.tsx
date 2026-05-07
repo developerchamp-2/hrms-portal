@@ -556,8 +556,11 @@ export default async function EmployeeDashboardPage() {
               include: {
                 project: {
                   select: {
+                    id: true,
                     name: true,
                     status: true,
+                    startDate: true,
+                    endDate: true,
                   },
                 },
               },
@@ -616,6 +619,35 @@ export default async function EmployeeDashboardPage() {
           .map((member) => member.project.name),
       ),
     );
+    const teamProjectSummaries = Array.from(
+      directReports
+        .flatMap((report) =>
+          report.projectMembers.map((member) => ({
+            project: member.project,
+            employeeName: report.employeeName,
+          })),
+        )
+        .reduce((projects, assignment) => {
+          const existing = projects.get(assignment.project.id);
+
+          if (existing) {
+            existing.memberNames.push(assignment.employeeName);
+            return projects;
+          }
+
+          projects.set(assignment.project.id, {
+            ...assignment.project,
+            memberNames: [assignment.employeeName],
+          });
+
+          return projects;
+        }, new Map<string, { id: string; name: string; status: string; startDate: Date; endDate: Date | null; memberNames: string[] }>())
+        .values(),
+    );
+    const projectAssignments = directReports.reduce(
+      (total, report) => total + report.projectMembers.length,
+      0,
+    );
 
     const managerStats = [
       {
@@ -641,6 +673,29 @@ export default async function EmployeeDashboardPage() {
         value: pendingDocumentReviews,
         icon: FileText,
         tone: "bg-violet-50 text-violet-700",
+      },
+      {
+        title: "Project Assignments",
+        value: projectAssignments,
+        icon: BriefcaseBusiness,
+        tone: "bg-cyan-50 text-cyan-700",
+      },
+    ];
+
+    const projectModuleCards = [
+      {
+        title: "Project Creation",
+        href: "/projects",
+        description: "Create projects, update timelines, and track project status.",
+        meta: `${teamProjectSummaries.length} team project(s)`,
+        icon: BriefcaseBusiness,
+      },
+      {
+        title: "Project Members",
+        href: "/project-members",
+        description: "Assign team members to projects and maintain ownership.",
+        meta: `${projectAssignments} assignment(s)`,
+        icon: Users,
       },
     ];
 
@@ -713,7 +768,7 @@ export default async function EmployeeDashboardPage() {
             </div>
           </section>
 
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             {managerStats.map((item) => (
               <div key={item.title} className="rounded-2xl border bg-white p-5 shadow-sm">
                 <div className="flex items-center justify-between gap-4">
@@ -842,6 +897,86 @@ export default async function EmployeeDashboardPage() {
                   <p>Joined: {formatDate(employeeProfile.joiningDate)}</p>
                 </div>
               </div>
+            </div>
+          </section>
+
+          <section className="rounded-3xl border bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Project Management Modules
+                </h2>
+                <p className="text-sm text-slate-500">
+                  Manager tools for creating projects and assigning direct
+                  reports to project teams.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              {projectModuleCards.map((module) => (
+                <Link
+                  key={module.title}
+                  href={module.href}
+                  className="group rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:border-cyan-300 hover:bg-cyan-50"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className="rounded-2xl bg-white p-3 text-cyan-700 shadow-sm">
+                        <module.icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-slate-900">
+                          {module.title}
+                        </h3>
+                        <p className="mt-1 text-sm text-slate-600">
+                          {module.description}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="mt-1 h-5 w-5 text-slate-400 transition group-hover:translate-x-1 group-hover:text-cyan-700" />
+                  </div>
+                  <p className="mt-4 text-sm font-medium text-cyan-700">
+                    {module.meta}
+                  </p>
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {teamProjectSummaries.slice(0, 6).map((project) => (
+                <div
+                  key={project.id}
+                  className="rounded-2xl border border-slate-200 p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-slate-900">
+                        {project.name}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {formatDate(project.startDate)} - {formatDate(project.endDate)}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                      {project.status.replaceAll("_", " ")}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm text-slate-600">
+                    {project.memberNames.slice(0, 3).join(", ")}
+                    {project.memberNames.length > 3
+                      ? ` +${project.memberNames.length - 3} more`
+                      : ""}
+                  </p>
+                </div>
+              ))}
+
+              {!teamProjectSummaries.length && (
+                <div className="rounded-2xl border border-dashed border-slate-300 p-5 text-sm text-slate-500 md:col-span-2 xl:col-span-3">
+                  No team project assignments yet. Use Project Members after
+                  creating a project to connect your direct reports.
+                </div>
+              )}
             </div>
           </section>
 

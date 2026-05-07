@@ -258,6 +258,22 @@ function getMenuByRole(
           url: "/employee-documents",
           icon: <IdCard size={18} />,
         },
+        {
+          name: "Project Management",
+          icon: <FolderArchive size={18} />,
+          children: [
+            {
+              name: "Project Creation",
+              url: "/projects",
+              icon: <Building2 size={18} />,
+            },
+            {
+              name: "Project Members",
+              url: "/project-members",
+              icon: <UserCog size={18} />,
+            },
+          ],
+        },
       ];
     }
 

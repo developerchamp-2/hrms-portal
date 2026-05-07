@@ -56,7 +56,10 @@ const ProjectCreatePage = async () => {
       </CardHeader>
 
       <CardContent className="pt-6">
-        <ProjectForm update={false} users={users as User[]} />
+        <ProjectForm
+          update={false}
+          users={users as User[]}
+        />
       </CardContent>
     </Card>
   );

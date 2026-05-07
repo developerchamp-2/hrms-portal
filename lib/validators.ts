@@ -316,14 +316,27 @@ export const projectSchema = z.object({
 });
 
 /* ---------------- PROJECT MEMBER ---------------- */
-export const projectMemberSchema = z.object({
-  id: z.string().optional(),
-  projectId: z.string().min(1, "Project is required"),
-  employeeId: z.string().min(1, "Employee is required"),
-  assignedAt: z.union([z.date().optional(), z.string().nullable()]),
-  createdAt: z.string().nullable().optional(),
-  updatedAt: z.string().nullable().optional(),
-});
+export const projectMemberSchema = z
+  .object({
+    id: z.string().optional(),
+    projectId: z.string().min(1, "Project is required"),
+    employeeId: z.string().optional(),
+    employeeIds: z.array(z.string()).optional(),
+    assignedAt: z.union([z.date().optional(), z.string().nullable()]),
+    createdAt: z.string().nullable().optional(),
+    updatedAt: z.string().nullable().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.employeeId || data.employeeIds?.length) {
+      return;
+    }
+
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "At least one employee is required",
+      path: ["employeeIds"],
+    });
+  });
 
 /* ---------------- TASK ---------------- */
 export const taskSchema = z.object({

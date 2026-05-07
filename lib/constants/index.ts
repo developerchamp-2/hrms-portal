@@ -176,5 +176,6 @@ export const projectDefaultValues = {
 export const projectMemberDefaultValues = {
   projectId: "",
   employeeId: "",
+  employeeIds: [],
   assignedAt: "",
 }

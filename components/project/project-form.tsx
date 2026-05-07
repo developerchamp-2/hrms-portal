@@ -7,15 +7,12 @@ import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Loader2,
-  FileText,
-  StickyNote,
   CalendarIcon,
 } from "lucide-react";
 import z from "zod";
 import { toast } from "sonner";
-import { ProjectStatus, Status } from "@prisma/client";
+import { ProjectStatus } from "@prisma/client";
 
-import { projectDefaultValues } from "@/lib/constants";
 import { projectSchema } from "@/lib/validators";
 
 import { Button } from "@/components/ui/button";
@@ -67,7 +64,7 @@ const ProjectForm = ({ data, update, users }: Props) => {
     startDate: data?.startDate ?? null,
     endDate: data?.endDate ?? null,
     status: data?.status ?? ProjectStatus.ACTIVE,
-    createdById: data?.createdById!, // must exist (or handle properly)
+    createdById: data?.createdById ?? "",
     description: data?.description ?? undefined,
   };
 
@@ -167,7 +164,7 @@ const ProjectForm = ({ data, update, users }: Props) => {
           <FormField
             control={form.control}
             name="endDate"
-            render={({ field }: { field: any }) => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-sm font-semibold text-slate-700">
                   End Date
@@ -211,9 +208,7 @@ const ProjectForm = ({ data, update, users }: Props) => {
 
                 <Select
                   value={field.value}
-                  onValueChange={(value) =>
-                    field.onChange(value as Status)
-                  }
+                  onValueChange={field.onChange}
                 >
                   <FormControl>
                     <SelectTrigger className={`${fieldClass} w-full`}>
@@ -247,7 +242,7 @@ const ProjectForm = ({ data, update, users }: Props) => {
                 <Select
                   value={field.value}
                   onValueChange={(value) =>
-                    field.onChange(value as Status)
+                    field.onChange(value as ProjectStatus)
                   }
                 >
                   <FormControl>

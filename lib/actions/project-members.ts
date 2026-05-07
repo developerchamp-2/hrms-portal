@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "../prisma";
 import { formatError } from "../utils";
 import { projectMemberSchema } from "../validators";
-import { ProjectMember } from "@prisma/client";
+import z from "zod";
 
 type ActionResponse = {
   success: boolean;
@@ -29,23 +29,38 @@ export async function getProjectMembers() {
   }
 }
 
-export async function createProjectMember(data: ProjectMember): Promise<ActionResponse> {
+type ProjectMemberInput = z.infer<typeof projectMemberSchema>;
+
+export async function createProjectMember(data: ProjectMemberInput): Promise<ActionResponse> {
   try {
     const projectMember = projectMemberSchema.parse(data);
+    const employeeIds = Array.from(
+      new Set(projectMember.employeeIds?.length
+        ? projectMember.employeeIds
+        : projectMember.employeeId
+          ? [projectMember.employeeId]
+          : []),
+    );
 
-    await prisma.projectMember.create({
-      data: {
+    await prisma.projectMember.createMany({
+      data: employeeIds.map((employeeId) => ({
         projectId: projectMember.projectId,
-        employeeId: projectMember.employeeId,
+        employeeId,
         assignedAt: projectMember.assignedAt || new Date().toISOString(),
-      }
+      })),
+      skipDuplicates: true,
     });
 
     revalidatePath("/project-members");
+    revalidatePath("/projects");
+    revalidatePath("/employee-dashboard");
 
     return {
       success: true,
-      message: "Project member created successfully",
+      message:
+        employeeIds.length === 1
+          ? "Project member created successfully"
+          : "Project members created successfully",
     };
   } catch (error) {
     return {
@@ -88,23 +103,33 @@ export async function getProjectMemberById(id: string) {
 }
 
 export async function updateProjectMember(
-  data: ProjectMember,
+  data: ProjectMemberInput,
   id: string,
 ): Promise<ActionResponse> {
   try {
     const projectMember = projectMemberSchema.parse(data);
+    const employeeId = projectMember.employeeId || projectMember.employeeIds?.[0];
+
+    if (!employeeId) {
+      return {
+        success: false,
+        message: "Employee is required",
+      };
+    }
 
     await prisma.projectMember.update({
       where: { id },
       data: {
         projectId: projectMember.projectId,
-        employeeId: projectMember.employeeId,
+        employeeId,
         assignedAt: projectMember.assignedAt || new Date().toISOString(),
       }
     });
 
     revalidatePath("/project-members");
     revalidatePath(`/project-members/edit/${id}`);
+    revalidatePath("/projects");
+    revalidatePath("/employee-dashboard");
 
     return {
       success: true,
