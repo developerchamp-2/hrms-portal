@@ -8,6 +8,7 @@ import {
   AttendanceStatus
 } from "@prisma/client";
 import { z } from "zod";
+import { DOCUMENT_REVIEW_STATUSES } from "./document-review";
 
 /* ---------------- AUTH ---------------- */
 export const loginFormSchema = z.object({
@@ -138,6 +139,10 @@ export const employeeDocumentSchema = z
       .optional(),
 
     // ---------------- COMMON ----------------
+    reviewStatus: z.enum(DOCUMENT_REVIEW_STATUSES).optional(),
+    reviewRemark: z.string().optional(),
+    reviewedById: z.string().optional(),
+    reviewedAt: z.string().nullable().optional(),
     remark: z.string().optional(),
     status: z.nativeEnum(Status),
     createdAt: z.string().nullable().optional(),
@@ -289,8 +294,12 @@ export const configurationSchema = z.object({
   name: z.string().optional(),
   logo: z.any().optional(),
   favicon: z.any().optional(),
-  email: z.string().optional(),
+  email: z.union([z.string().email("Invalid email address"), z.literal("")]).optional(),
   password: z.string().optional(),
+  smtpHost: z.string().optional(),
+  smtpPort: z.number().int().positive().optional(),
+  smtpSecure: z.boolean().optional(),
+  smtpFromName: z.string().optional(),
 });
 
 /* ---------------- PROJECT ---------------- */

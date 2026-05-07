@@ -47,6 +47,7 @@ export type TransferPromotion = z.infer<typeof transferPromotionSchema> & {
 
 export type EmployeeDocument = z.infer<typeof employeeDocumentSchema> & {
   employeeName?: string;
+  reviewedByName?: string;
 };
 
 export type EmployeeProfile = z.infer<typeof employeeProfileSchema> & {

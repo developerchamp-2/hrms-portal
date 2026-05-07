@@ -372,13 +372,6 @@ export async function createEmployeeProfile(
           status: record.status,
         },
       });
-
-      if (hashedPassword) {
-        await tx.user.updateMany({
-          where: { email: record.email },
-          data: { password: hashedPassword },
-        });
-      }
     });
 
     revalidatePath("/employee-profiles");
@@ -445,7 +438,7 @@ export async function updateEmployeeProfile(
 
     const existingRecord = await prisma.employeeProfile.findUnique({
       where: { id },
-      select: { employeeCode: true, email: true },
+      select: { employeeCode: true },
     });
 
     if (!existingRecord) {
@@ -483,13 +476,6 @@ export async function updateEmployeeProfile(
         },
       });
 
-      await tx.user.updateMany({
-        where: { email: existingRecord.email },
-        data: {
-          email: record.email,
-          ...(hashedPassword ? { password: hashedPassword } : {}),
-        },
-      });
     });
 
     revalidatePath("/employee-profiles");

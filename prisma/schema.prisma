@@ -22,6 +22,12 @@ enum ExperienceType {
   EXPERIENCED
 }
 
+enum DocumentReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum ProjectStatus {
   PLANNING
   ACTIVE
@@ -57,21 +63,26 @@ model Role {
 }
 
 model User {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username  String   @unique
-  password  String
-  firstName String
-  lastName  String
-  email     String   @unique
-  status    Status   @default(ACTIVE)
-  remark    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  roleId    String   @db.Uuid
-  role      Role     @relation(fields: [roleId], references: [id])
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username            String    @unique
+  password            String
+  firstName           String
+  lastName            String
+  email               String    @unique
+  status              Status    @default(ACTIVE)
+  remark              String?
+  resetTokenHash      String?
+  resetTokenExpiresAt DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  roleId              String    @db.Uuid
+  role                Role      @relation(fields: [roleId], references: [id])
 
   projects              Project[]
   reviewedLeaveRequests LeaveRequest[]
+  reviewedEmployeeDocuments EmployeeDocument[]
+
+  @@index([resetTokenHash])
 }
 
 model Company {
@@ -92,21 +103,25 @@ model Company {
 }
 
 model Employer {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyId    String   @db.Uuid
-  employerName String
-  employerCode String   @unique
-  email        String   @unique
-  phone        String
-  password     String
-  designation  String?
-  address      String?
-  remark       String?
-  status       Status   @default(ACTIVE)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId           String    @db.Uuid
+  employerName        String
+  employerCode        String    @unique
+  email               String    @unique
+  phone               String
+  password            String
+  designation         String?
+  address             String?
+  remark              String?
+  resetTokenHash      String?
+  resetTokenExpiresAt DateTime?
+  status              Status    @default(ACTIVE)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([resetTokenHash])
 }
 
 model JobRole {
@@ -193,21 +208,28 @@ model EmployeeDocument {
   experienceEntries Json?
 
   // ---------------- COMMON ----------------
+  reviewStatus DocumentReviewStatus @default(PENDING)
+  reviewRemark String?
+  reviewedById String? @db.Uuid
+  reviewedAt   DateTime?
   remark    String?
   status    Status   @default(ACTIVE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   employee EmployeeProfile @relation(fields: [employeeId], references: [id])
+  reviewedBy User? @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
 }
 
 model EmployeeProfile {
-  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  managerId    String? @db.Uuid
-  employeeName String
-  employeeCode String  @unique
-  email        String  @unique
-  password     String?
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  managerId           String?   @db.Uuid
+  employeeName        String
+  employeeCode        String    @unique
+  email               String    @unique
+  password            String?
+  resetTokenHash      String?
+  resetTokenExpiresAt DateTime?
 
   companyId String? @db.Uuid
 
@@ -245,6 +267,7 @@ model EmployeeProfile {
   leaveRequests      LeaveRequest[]
 
   @@index([managerId])
+  @@index([resetTokenHash])
 }
 
 model Module {
@@ -277,12 +300,16 @@ model RoleModule {
 }
 
 model Configuration {
-  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name     String?
-  logo     String?
-  favicon  String?
-  email    String?
-  password String?
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String?
+  logo         String?
+  favicon      String?
+  email        String?
+  password     String?
+  smtpHost     String?
+  smtpPort     Int?
+  smtpSecure   Boolean @default(true)
+  smtpFromName String?
 }
 
 model Project {

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { getEmployeeProfiles } from "@/lib/actions/employee-profiles";
+import { isCurrentEmployeeHr } from "@/lib/employee-job-role";
 import { getRoutePermissions } from "@/lib/rbac";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -7,7 +8,18 @@ import EmployeeProfileDataTable from "./employee-profile-data-table";
 
 const EmployeeProfilePage = async () => {
   const route = "/employee-profiles";
-  const permissions = await getRoutePermissions(route);
+  const [routePermissions, isHrEmployee] = await Promise.all([
+    getRoutePermissions(route),
+    isCurrentEmployeeHr(),
+  ]);
+  const permissions = isHrEmployee
+    ? {
+        canView: true,
+        canCreate: true,
+        canEdit: true,
+        canDelete: false,
+      }
+    : routePermissions;
 
   if (!permissions.canView) {
     redirect("/404");

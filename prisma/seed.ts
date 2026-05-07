@@ -62,6 +62,11 @@
         route: "/department",
       },
       {
+        name: "Job Roles",
+        description: "Job Role Module",
+        route: "/job-roles",
+      },
+      {
         name: "Work Location",
         description: "Work Location Module",
         route: "/work-location",

@@ -107,6 +107,10 @@ export const employeeDocumentDefaultValues = {
   experienceEntries: [],
 
   // ---------------- COMMON ----------------
+  reviewStatus: "PENDING",
+  reviewRemark: "",
+  reviewedById: "",
+  reviewedAt: "",
   remark: "",
   status: Status.ACTIVE,
 };

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRightLeft,
+  BadgeCheck,
   Briefcase,
   Building2,
   CalendarCheck,
@@ -47,6 +48,7 @@ type SidebarUser = {
 };
 
 type SidebarRole = string | undefined;
+type SidebarJobRole = string | undefined;
 
 type AppConfig = {
   name?: string | null;
@@ -92,6 +94,11 @@ const menu: MenuGroup[] = [
         name: "Dept & Org Chart",
         url: "/department",
         icon: <Building2 size={18} />,
+      },
+      {
+        name: "Job Roles",
+        url: "/job-roles",
+        icon: <BadgeCheck size={18} />,
       },
       {
         name: "Work Location",
@@ -165,29 +172,115 @@ const menu: MenuGroup[] = [
   },
 ];
 
-function getMenuByRole(role?: SidebarRole): MenuGroup[] {
+function isHrJobRole(jobRole?: SidebarJobRole) {
+  return !!jobRole?.toLowerCase().includes("hr");
+}
+
+function isManagerJobRole(jobRole?: SidebarJobRole) {
+  return !!jobRole?.toLowerCase().includes("manager");
+}
+
+function getMenuByRole(
+  role?: SidebarRole,
+  jobRole?: SidebarJobRole,
+  isManager?: boolean,
+): MenuGroup[] {
   if (role?.toLowerCase() === "employee") {
+    if (isHrJobRole(jobRole)) {
+      return [
+        {
+          name: "HR Dashboard",
+          url: "/employee-dashboard",
+          icon: <Gauge size={18} />,
+        },
+        {
+          name: "Employee Profiles",
+          url: "/employee-profiles",
+          icon: <Users2Icon size={18} />,
+        },
+        {
+          name: "Dept & Org Chart",
+          url: "/department",
+          icon: <Building2 size={18} />,
+        },
+        {
+          name: "Job Roles",
+          url: "/job-roles",
+          icon: <BadgeCheck size={18} />,
+        },
+        {
+          name: "Work Location",
+          url: "/work-location",
+          icon: <Briefcase size={18} />,
+        },
+        {
+          name: "Attendance",
+          url: "/attendance",
+          icon: <CalendarCheck size={18} />,
+        },
+        {
+          name: "Leave Requests",
+          url: "/leave-requests",
+          icon: <CalendarPlus size={18} />,
+        },
+        {
+          name: "Transfer & Promotion",
+          url: "/transfer-promotion",
+          icon: <ArrowRightLeft size={18} />,
+        },
+        {
+          name: "Employee Documents",
+          url: "/employee-documents",
+          icon: <IdCard size={18} />,
+        },
+      ];
+    }
+
+    if (isManager || isManagerJobRole(jobRole)) {
+      return [
+        {
+          name: "Manager Dashboard",
+          url: "/employee-dashboard",
+          icon: <Gauge size={18} />,
+        },
+        {
+          name: "My Attendance",
+          url: "/attendance/my",
+          icon: <CalendarCheck size={18} />,
+        },
+        {
+          name: "My Leave Requests",
+          url: "/leave-requests/my",
+          icon: <CalendarPlus size={18} />,
+        },
+        {
+          name: "My Documents",
+          url: "/employee-documents",
+          icon: <IdCard size={18} />,
+        },
+      ];
+    }
+
     return [
       {
-        name: "Dashboard",
+        name: "Employee Dashboard",
+        url: "/employee-dashboard",
         icon: <Gauge size={18} />,
-        children: [
-          {
-            name: "Employee Dashboard",
-            url: "/employee-dashboard",
-            icon: <Users2Icon size={18} />,
-          },
-          {
-            name: "My Attendance",
-            url: "/attendance/my",
-            icon: <CalendarCheck size={18} />,
-          },
-          {
-            name: "Leave Requests",
-            url: "/leave-requests/my",
-            icon: <CalendarPlus size={18} />,
-          },
-        ],
+      },
+      {
+        name: "My Attendance",
+        url: "/attendance/my",
+        icon: <CalendarCheck size={18} />,
+      },
+      {
+        name: "My Leave Requests",
+        url: "/leave-requests/my",
+        icon: <CalendarPlus size={18} />,
+      },
+      {
+        name: "My Documents",
+        url: "/employee-documents",
+        icon: <IdCard size={18} />,
       },
     ];
   }
@@ -246,12 +339,16 @@ function filterMenuByAccess(
 export function AppSidebar({
   user,
   role,
+  jobRole,
+  isManager,
   config,
   accessibleRoutes = [],
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   user?: SidebarUser;
   role?: SidebarRole;
+  jobRole?: SidebarJobRole;
+  isManager?: boolean;
   config?: AppConfig;
   accessibleRoutes?: string[];
 }) {
@@ -262,7 +359,7 @@ export function AppSidebar({
   };
 
   const filteredMenu = filterMenuByAccess(
-    getMenuByRole(role),
+    getMenuByRole(role, jobRole, isManager),
     role,
     accessibleRoutes
   );
@@ -278,10 +375,7 @@ export function AppSidebar({
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
 
-  const pathname = usePathname()
-
-  console.log(pathname);
-
+  const pathname = usePathname();
 
   return (
     <Sidebar

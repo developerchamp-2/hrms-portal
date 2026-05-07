@@ -6,6 +6,7 @@ import {
   getLeaveDashboard,
   getLeaveRequests,
 } from "@/lib/actions/leave-requests";
+import { isCurrentEmployeeHr } from "@/lib/employee-job-role";
 import {
   canManageAllAttendance,
   getRoutePermissions,
@@ -17,8 +18,12 @@ export default async function LeaveRequestsPage() {
     getRoutePermissions("/leave-requests"),
     getUserPermissions(),
   ]);
+  const isHrEmployee = await isCurrentEmployeeHr();
 
-  if (!permissions.canView || !canManageAllAttendance(user?.role?.name)) {
+  if (
+    (!permissions.canView || !canManageAllAttendance(user?.role?.name)) &&
+    !isHrEmployee
+  ) {
     redirect("/404");
   }
 

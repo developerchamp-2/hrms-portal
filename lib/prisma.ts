@@ -8,16 +8,42 @@ export const pool = new Pool({
 
 const adapter = new PrismaPg(pool)
 
-const globalForPrisma = global as unknown as {
+const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
+function createPrismaClient() {
+  return new PrismaClient({
     adapter,
     log: ["error"],
   })
+}
+
+function hasEmployeeDocumentReviewFields(client: PrismaClient) {
+  const fields = (client as PrismaClient & {
+    _runtimeDataModel?: {
+      models?: {
+        EmployeeDocument?: {
+          fields?: Array<{ name: string }>
+        }
+      }
+    }
+  })._runtimeDataModel?.models?.EmployeeDocument?.fields
+
+  return Array.isArray(fields) && fields.some((field) => field.name === "reviewStatus")
+}
+
+export const prisma = (() => {
+  const cached = globalForPrisma.prisma
+
+  if (cached && hasEmployeeDocumentReviewFields(cached)) {
+    return cached
+  }
+
+  const client = createPrismaClient()
+  globalForPrisma.prisma = client
+  return client
+})()
 
 if (process.env.NODE_ENV !== "production")
   globalForPrisma.prisma = prisma

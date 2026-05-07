@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getAttendanceDashboard } from "@/lib/actions/attendance";
+import { isCurrentEmployeeHr } from "@/lib/employee-job-role";
 import {
   canManageAllAttendance,
   getRoutePermissions,
@@ -30,12 +31,13 @@ export default async function AttendancePage() {
     getRoutePermissions("/attendance"),
     getUserPermissions(),
   ]);
+  const isHrEmployee = await isCurrentEmployeeHr();
 
-  if (!permissions.canView) {
+  if (!permissions.canView && !isHrEmployee) {
     redirect("/404");
   }
 
-  if (!canManageAllAttendance(user?.role?.name)) {
+  if (!canManageAllAttendance(user?.role?.name) && !isHrEmployee) {
     redirect("/attendance/my");
   }
 
