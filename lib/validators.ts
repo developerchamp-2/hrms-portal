@@ -5,10 +5,12 @@ import {
   ProjectStatus,
   TaskStatus,
   Priority,
-  AttendanceStatus
+  AttendanceStatus,
 } from "@prisma/client";
 import { z } from "zod";
 import { DOCUMENT_REVIEW_STATUSES } from "./document-review";
+
+const EOD_APPROVAL_STATUSES = ["PENDING", "APPROVED", "REJECTED"] as const;
 
 /* ---------------- AUTH ---------------- */
 export const loginFormSchema = z.object({
@@ -378,6 +380,36 @@ export const attendanceSchema = z.object({
   isLate: z.boolean().optional(),
   isHalfDay: z.boolean().optional(),
   remarks: z.string().optional(),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
+});
+
+/* ---------------- EOD REPORTING ---------------- */
+export const eodReportSchema = z.object({
+  id: z.string().optional(),
+  employeeId: z.string().optional(),
+  reportDate: z.string().min(1, "Report date is required"),
+  linkedTaskIds: z.array(z.string()).optional(),
+  accomplishments: z.string().trim().min(1, "Accomplishments are required"),
+  plans: z.string().optional(),
+  blockers: z.string().optional(),
+  managerStatus: z.enum(EOD_APPROVAL_STATUSES).optional(),
+  managerRemark: z.string().optional(),
+  reviewedByManagerId: z.string().optional(),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
+});
+
+export const monthlyEodReviewSchema = z.object({
+  id: z.string().optional(),
+  employeeId: z.string().min(1, "Employee is required"),
+  year: z.coerce.number().int().min(2000),
+  month: z.coerce.number().int().min(1).max(12),
+  managerStatus: z.enum(EOD_APPROVAL_STATUSES).optional(),
+  managerRemark: z.string().optional(),
+  hrStatus: z.enum(EOD_APPROVAL_STATUSES).optional(),
+  hrRemark: z.string().optional(),
+  reviewedByHrEmail: z.string().optional(),
   createdAt: z.string().nullable().optional(),
   updatedAt: z.string().nullable().optional(),
 });

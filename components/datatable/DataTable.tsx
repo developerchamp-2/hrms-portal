@@ -15,6 +15,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { ArrowDown, ArrowUp, ChevronsUpDown, SlidersHorizontal } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 import {
   Table,
@@ -48,6 +49,7 @@ interface DataTableProps<TData, TValue> {
   title?: string
   actions?: React.ReactNode
   rowClassName?: (row: TData) => string
+  rowHref?: (row: TData) => string | undefined
 }
 
 export function DataTable<TData, TValue>({
@@ -56,7 +58,9 @@ export function DataTable<TData, TValue>({
   title = "",
   actions,
   rowClassName,
+  rowHref,
 }: DataTableProps<TData, TValue>) {
+  const router = useRouter()
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
@@ -106,6 +110,10 @@ export function DataTable<TData, TValue>({
   const columnOptions = table
     .getAllLeafColumns()
     .filter((column) => column.getCanHide())
+
+  const isInteractiveElement = (target: EventTarget | null) =>
+    target instanceof HTMLElement &&
+    Boolean(target.closest("a, button, input, select, textarea, [role='button']"))
 
   return (
     <Card className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -217,8 +225,34 @@ export function DataTable<TData, TValue>({
                   table.getRowModel().rows.map((row, index) => (
                     <TableRow
                       key={row.id}
+                      role={rowHref?.(row.original) ? "link" : undefined}
+                      tabIndex={rowHref?.(row.original) ? 0 : undefined}
+                      onClick={(event) => {
+                        if (isInteractiveElement(event.target)) {
+                          return
+                        }
+
+                        const href = rowHref?.(row.original)
+                        if (href) {
+                          router.push(href)
+                        }
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key !== "Enter" || isInteractiveElement(event.target)) {
+                          return
+                        }
+
+                        const href = rowHref?.(row.original)
+                        if (href) {
+                          router.push(href)
+                        }
+                      }}
                       className={`border-b border-slate-100 transition-all hover:bg-cyan-50/50 ${
                         index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
+                      } ${
+                        rowHref?.(row.original)
+                          ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
+                          : ""
                       } ${
                         rowClassName
                           ? rowClassName(row.original)

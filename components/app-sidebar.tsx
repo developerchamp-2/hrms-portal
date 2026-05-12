@@ -16,6 +16,7 @@ import {
   IdCard,
   ListChecks,
   LayoutGrid,
+  NotebookText,
   Settings,
   User2Icon,
   UserCog,
@@ -132,6 +133,11 @@ const menu: MenuGroup[] = [
         url: "/leave-requests",
         icon: <CalendarPlus size={18} />,
       },
+      {
+        name: "EOD Reporting",
+        url: "/eod-reporting",
+        icon: <NotebookText size={18} />,
+      },
     ],
   },
   {
@@ -241,6 +247,11 @@ function getMenuByRole(
           icon: <ListChecks size={18} />,
         },
         {
+          name: "EOD Reporting",
+          url: "/eod-reporting",
+          icon: <NotebookText size={18} />,
+        },
+        {
           name: "Transfer & Promotion",
           url: "/transfer-promotion",
           icon: <ArrowRightLeft size={18} />,
@@ -279,6 +290,11 @@ function getMenuByRole(
           name: "My Task Tracking",
           url: "/employee-task-tracking",
           icon: <ListChecks size={18} />,
+        },
+        {
+          name: "EOD Reporting",
+          url: "/eod-reporting",
+          icon: <NotebookText size={18} />,
         },
         {
           name: "Project Management",
@@ -329,6 +345,11 @@ function getMenuByRole(
         name: "My Task Tracking",
         url: "/employee-task-tracking",
         icon: <ListChecks size={18} />,
+      },
+      {
+        name: "EOD Reporting",
+        url: "/eod-reporting",
+        icon: <NotebookText size={18} />,
       },
     ];
   }

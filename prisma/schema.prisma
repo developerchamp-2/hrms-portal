@@ -266,6 +266,10 @@ model EmployeeProfile {
   taskSubmissions    TaskSubmission[]
   attendances        Attendance[]
   leaveRequests      LeaveRequest[]
+  eodReports         EodReport[]
+  reviewedEodReports EodReport[]      @relation("EodReviewedByManager")
+  monthlyEodReviews  MonthlyEodReview[]
+  managedMonthlyEodReviews MonthlyEodReview[] @relation("MonthlyEodReviewedByManager")
 
   @@index([managerId])
   @@index([resetTokenHash])
@@ -437,10 +441,57 @@ model Attendance {
   updatedAt DateTime @updatedAt
 
   employee EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  eodReports EodReport[]
 
   @@unique([employeeId, date])
   @@index([date])
   @@index([employeeId])
+}
+
+model EodReport {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId          String            @db.Uuid
+  attendanceId        String?           @db.Uuid
+  reportDate          DateTime          @db.Date
+  linkedTaskIds       Json?
+  accomplishments     String
+  plans               String?
+  blockers            String?
+  managerStatus       EodApprovalStatus @default(PENDING)
+  managerRemark       String?
+  reviewedByManagerId String?           @db.Uuid
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  employee          EmployeeProfile  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  attendance        Attendance?      @relation(fields: [attendanceId], references: [id], onDelete: SetNull)
+  reviewedByManager EmployeeProfile? @relation("EodReviewedByManager", fields: [reviewedByManagerId], references: [id], onDelete: SetNull)
+
+  @@unique([employeeId, reportDate])
+  @@index([reportDate])
+  @@index([managerStatus])
+}
+
+model MonthlyEodReview {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId          String            @db.Uuid
+  year                Int
+  month               Int
+  managerStatus       EodApprovalStatus @default(PENDING)
+  managerRemark       String?
+  reviewedByManagerId String?           @db.Uuid
+  hrStatus            EodApprovalStatus @default(PENDING)
+  hrRemark            String?
+  reviewedByHrEmail   String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  employee          EmployeeProfile  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewedByManager EmployeeProfile? @relation("MonthlyEodReviewedByManager", fields: [reviewedByManagerId], references: [id], onDelete: SetNull)
+
+  @@unique([employeeId, year, month])
+  @@index([year, month])
+  @@index([managerStatus, hrStatus])
 }
 
 enum AttendanceStatus {
@@ -464,6 +515,12 @@ enum LeaveRequestStatus {
   APPROVED
   REJECTED
   CANCELLED
+}
+
+enum EodApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model LeaveRequest {

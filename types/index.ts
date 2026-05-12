@@ -14,6 +14,8 @@ import {
   taskCommentSchema,
   taskSchema,
   transferPromotionSchema,
+  eodReportSchema,
+  monthlyEodReviewSchema,
   userSchema,
   workLocationSchema,
   attendanceSchema,
@@ -67,4 +69,15 @@ export type Attendance = z.infer<typeof attendanceSchema> & {
   employeeName?: string;
   employeeCode?: string;
   departmentName?: string;
+};
+export type EodReport = z.infer<typeof eodReportSchema> & {
+  employeeName?: string;
+  employeeCode?: string;
+  managerName?: string;
+  attendanceStatus?: string;
+};
+export type MonthlyEodReview = z.infer<typeof monthlyEodReviewSchema> & {
+  employeeName?: string;
+  employeeCode?: string;
+  managerName?: string;
 };

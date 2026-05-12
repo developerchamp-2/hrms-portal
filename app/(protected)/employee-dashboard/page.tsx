@@ -36,8 +36,13 @@ const formatDate = (value?: Date | null) =>
 const toDateOnly = (value = new Date()) =>
   new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate()));
 
-export default async function EmployeeDashboardPage() {
+export default async function EmployeeDashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ employeeId?: string }>;
+}) {
   const session = await auth();
+  const selectedEmployeeId = (await searchParams)?.employeeId;
   const isEmployee = session?.user?.role?.toLowerCase() === "employee";
   const isHrEmployee = isEmployee ? await isCurrentEmployeeHr() : false;
   const isManagerEmployee =
@@ -48,35 +53,382 @@ export default async function EmployeeDashboardPage() {
   }
 
   if (!isEmployee) {
-    const employeeProfiles = await prisma.employeeProfile.findMany({
-      orderBy: [{ employeeName: "asc" }, { employeeCode: "asc" }],
-      include: {
-        department: {
-          select: {
-            name: true,
+    const [employeeProfiles, selectedEmployeeDetails] = await Promise.all([
+      prisma.employeeProfile.findMany({
+        orderBy: [{ employeeName: "asc" }, { employeeCode: "asc" }],
+        include: {
+          department: {
+            select: {
+              name: true,
+            },
+          },
+          jobRole: {
+            select: {
+              name: true,
+            },
+          },
+          workLocation: {
+            select: {
+              name: true,
+            },
+          },
+          manager: {
+            select: {
+              employeeName: true,
+            },
           },
         },
-        jobRole: {
-          select: {
-            name: true,
-          },
-        },
-        workLocation: {
-          select: {
-            name: true,
-          },
-        },
-        manager: {
-          select: {
-            employeeName: true,
-          },
-        },
-      },
-    });
+      }),
+      selectedEmployeeId
+        ? prisma.employeeProfile.findUnique({
+            where: {
+              id: selectedEmployeeId,
+            },
+            include: {
+              department: {
+                select: {
+                  name: true,
+                },
+              },
+              jobRole: {
+                select: {
+                  name: true,
+                },
+              },
+              workLocation: {
+                select: {
+                  name: true,
+                },
+              },
+              manager: {
+                select: {
+                  employeeName: true,
+                },
+              },
+              employeeDocuments: {
+                orderBy: {
+                  updatedAt: "desc",
+                },
+                take: 6,
+              },
+              projectMembers: {
+                orderBy: {
+                  assignedAt: "desc",
+                },
+                include: {
+                  project: {
+                    select: {
+                      id: true,
+                      name: true,
+                      status: true,
+                      startDate: true,
+                      endDate: true,
+                      description: true,
+                    },
+                  },
+                },
+              },
+            },
+          })
+        : Promise.resolve(null),
+    ]);
 
     const activeEmployees = employeeProfiles.filter(
       (profile) => profile.status === "ACTIVE",
     ).length;
+    const selectedEmployee = selectedEmployeeDetails;
+
+    if (selectedEmployee) {
+      return (
+        <div className="space-y-6">
+          <section className="overflow-hidden rounded-lg border border-slate-200 bg-gradient-to-r from-sky-50 via-white to-cyan-50 shadow-sm">
+            <div className="grid gap-6 p-6 lg:grid-cols-[1.15fr_0.85fr] lg:p-8">
+              <div>
+                <p className="text-sm uppercase tracking-[0.25em] text-cyan-700">
+                  Employee Dashboard
+                </p>
+                <h1 className="mt-3 text-3xl font-semibold text-slate-900">
+                  {selectedEmployee.employeeName}
+                </h1>
+                <p className="mt-3 max-w-2xl text-sm text-slate-600">
+                  Employee-specific details, documents, and active project associations in one place.
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-3 text-sm text-slate-600">
+                  <div className="rounded-full border border-slate-200 bg-white px-4 py-2">
+                    {selectedEmployee.employeeCode || "Employee code not assigned"}
+                  </div>
+                  <div className="rounded-full border border-slate-200 bg-white px-4 py-2">
+                    {selectedEmployee.jobRole?.name || "Role not assigned"}
+                  </div>
+                  <div className="rounded-full border border-slate-200 bg-white px-4 py-2">
+                    Joined {formatDate(selectedEmployee.joiningDate)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 bg-white p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">Quick Actions</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Move between profile records and supporting modules.
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                    {selectedEmployee.status}
+                  </span>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <Link
+                    href="/employee-profiles"
+                    className="inline-flex h-10 items-center rounded-lg border border-slate-200 px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  >
+                    Back to employees
+                  </Link>
+                  <Link
+                    href={`/employee-profiles/edit/${selectedEmployee.id}`}
+                    className="inline-flex h-10 items-center rounded-lg bg-cyan-600 px-4 text-sm font-medium text-white transition hover:bg-cyan-700"
+                  >
+                    Edit profile
+                  </Link>
+                  <Link
+                    href="/employee-documents"
+                    className="inline-flex h-10 items-center rounded-lg border border-slate-200 px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  >
+                    All documents
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-lg border bg-white p-5 shadow-sm">
+              <p className="text-sm text-slate-500">Department</p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">
+                {selectedEmployee.department?.name || "Not assigned"}
+              </p>
+            </div>
+            <div className="rounded-lg border bg-white p-5 shadow-sm">
+              <p className="text-sm text-slate-500">Work Location</p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">
+                {selectedEmployee.workLocation?.name || "Not assigned"}
+              </p>
+            </div>
+            <div className="rounded-lg border bg-white p-5 shadow-sm">
+              <p className="text-sm text-slate-500">Documents</p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">
+                {selectedEmployee.employeeDocuments.length}
+              </p>
+            </div>
+            <div className="rounded-lg border bg-white p-5 shadow-sm">
+              <p className="text-sm text-slate-500">Projects</p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">
+                {selectedEmployee.projectMembers.length}
+              </p>
+            </div>
+          </section>
+
+          <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="rounded-lg border bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-900">
+                Employment Details
+              </h2>
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-lg bg-slate-50 p-4">
+                  <p className="text-sm text-slate-500">Email</p>
+                  <p className="mt-1 font-medium text-slate-900">
+                    {selectedEmployee.email || "-"}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-4">
+                  <p className="text-sm text-slate-500">Phone</p>
+                  <p className="mt-1 font-medium text-slate-900">
+                    {selectedEmployee.phone || "-"}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-4">
+                  <p className="text-sm text-slate-500">Manager</p>
+                  <p className="mt-1 font-medium text-slate-900">
+                    {selectedEmployee.manager?.employeeName || "Not assigned"}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-4">
+                  <p className="text-sm text-slate-500">Joining Date</p>
+                  <p className="mt-1 font-medium text-slate-900">
+                    {formatDate(selectedEmployee.joiningDate)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border bg-white p-6 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-cyan-50 p-3 text-cyan-700">
+                  <ClipboardList className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">
+                    HR Snapshot
+                  </h2>
+                  <p className="text-sm text-slate-500">
+                    Quick context for review.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-4 text-sm text-slate-700">
+                <div className="flex items-center justify-between">
+                  <span>Total Employees</span>
+                  <strong className="text-slate-900">{employeeProfiles.length}</strong>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Active Employees</span>
+                  <strong className="text-slate-900">{activeEmployees}</strong>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Document Reviews</span>
+                  <strong className="text-slate-900">
+                    {
+                      selectedEmployee.employeeDocuments.filter(
+                        (document) => document.reviewStatus === "PENDING",
+                      ).length
+                    }
+                  </strong>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Project Assignments</span>
+                  <strong className="text-slate-900">{selectedEmployee.projectMembers.length}</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-lg border bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-cyan-50 p-3 text-cyan-700">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">
+                    Employee Documents
+                  </h2>
+                  <p className="text-sm text-slate-500">
+                    Documents attached to this employee profile.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {selectedEmployee.employeeDocuments.length ? (
+                selectedEmployee.employeeDocuments.map((document) => (
+                  <div
+                    key={document.id}
+                    className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-slate-900">
+                          {document.experienceType.replaceAll("_", " ")}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          Updated {formatDate(document.updatedAt)}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700">
+                        {document.reviewStatus}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 space-y-1 text-sm text-slate-600">
+                      <p>Aadhaar: {document.aadhaarNumber || "-"}</p>
+                      <p>PAN: {document.panNumber || "-"}</p>
+                      <p>Status: {document.status}</p>
+                      <p>Remark: {document.reviewRemark || "-"}</p>
+                    </div>
+
+                    <Link
+                      href={`/employee-documents/edit/${document.id}`}
+                      className="mt-4 inline-flex text-sm font-medium text-cyan-700 hover:text-cyan-800"
+                    >
+                      Open document
+                    </Link>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-lg border border-dashed border-slate-300 p-5 text-sm text-slate-500 md:col-span-2 xl:col-span-3">
+                  No employee documents added yet.
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="rounded-lg border bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-cyan-50 p-3 text-cyan-700">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">
+                    Project Memberships
+                  </h2>
+                  <p className="text-sm text-slate-500">
+                    Projects where this employee is currently included.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {selectedEmployee.projectMembers.length ? (
+                selectedEmployee.projectMembers.map((member) => (
+                  <div
+                    key={member.id}
+                    className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-slate-900">
+                          {member.project.name}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          Assigned {formatDate(member.assignedAt)}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700">
+                        {member.project.status.replaceAll("_", " ")}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 space-y-1 text-sm text-slate-600">
+                      <p>Start: {formatDate(member.project.startDate)}</p>
+                      <p>End: {formatDate(member.project.endDate)}</p>
+                      <p>{member.project.description || "No project description added yet."}</p>
+                    </div>
+
+                    <Link
+                      href={`/project-members/${member.project.id}`}
+                      className="mt-4 inline-flex text-sm font-medium text-cyan-700 hover:text-cyan-800"
+                    >
+                      View project team
+                    </Link>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-lg border border-dashed border-slate-300 p-5 text-sm text-slate-500 md:col-span-2 xl:col-span-3">
+                  This employee is not assigned to any project yet.
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+      );
+    }
 
     return (
       <div className="space-y-6">

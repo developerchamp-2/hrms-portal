@@ -85,6 +85,10 @@ function isLeaveRequestRoute(route: string) {
   return route === "/leave-requests" || route === "/leave-requests/my";
 }
 
+function isEodReportingRoute(route: string) {
+  return route === "/eod-reporting";
+}
+
 function isProjectManagementRoute(route: string) {
   return (
     route === "/projects" ||
@@ -142,10 +146,15 @@ export async function canAccess(route: string, action: PermissionAction) {
     return action === "view" || action === "edit";
   }
 
+  if (canManageAllAttendance(user.role?.name) && isEodReportingRoute(route)) {
+    return action !== "delete";
+  }
+
   if (
     isEmployeeUser(user) &&
     (route === "/employee-documents" ||
       route === "/employee-task-tracking" ||
+      isEodReportingRoute(route) ||
       route === "/attendance" ||
       route === "/attendance/my" ||
       isLeaveRequestRoute(route))
@@ -195,10 +204,20 @@ export async function getRoutePermissions(route: string) {
     };
   }
 
+  if (canManageAllAttendance(user.role?.name) && isEodReportingRoute(route)) {
+    return {
+      canView: true,
+      canCreate: true,
+      canEdit: true,
+      canDelete: false,
+    };
+  }
+
   if (
     isEmployeeUser(user) &&
     (route === "/employee-documents" ||
       route === "/employee-task-tracking" ||
+      isEodReportingRoute(route) ||
       route === "/attendance" ||
       route === "/attendance/my" ||
       isLeaveRequestRoute(route))
@@ -266,6 +285,7 @@ export async function getAccessibleRoutes() {
       user.role?.roleModules.map((roleModule) => roleModule.module.route) || []
     );
     routes.add("/leave-requests");
+    routes.add("/eod-reporting");
     routes.add("/dashboard-design");
     routes.add("/project-tracking");
     return Array.from(routes);
@@ -287,6 +307,7 @@ export async function getAccessibleRoutes() {
 
     routes.add("/employee-documents");
     routes.add("/employee-task-tracking");
+    routes.add("/eod-reporting");
     routes.add("/attendance/my");
     routes.add("/leave-requests/my");
 
@@ -335,6 +356,9 @@ export async function getAccessibleRoutes() {
 
   routes.add("/dashboard-design");
   routes.add("/project-tracking");
+  if (canManageAllAttendance(user.role?.name)) {
+    routes.add("/eod-reporting");
+  }
 
   return Array.from(routes);
 }
