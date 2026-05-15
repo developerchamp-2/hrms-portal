@@ -478,7 +478,7 @@ export default async function DashboardPage() {
         <DashboardHero
           eyebrow="HRMS Dashboard"
           title={`Welcome back, ${session.user.name || session.user.firstName || "User"}`}
-          description="A live overview of the modules already built in this portal: employees, employers, attendance, leave, documents, projects, transfers, users, roles, and configuration."
+          description="Manage employees, attendance, leave, projects, and more — all from one smart, centralized dashboard."
         >
           <div className="glass-panel grid gap-3 rounded-[1.6rem] p-4 text-sm text-slate-700">
             <div className="flex items-center justify-between gap-4">

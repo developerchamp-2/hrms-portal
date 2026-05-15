@@ -40,11 +40,9 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Checkbox } from "@/components/ui/checkbox"
 
 import {
   Card,
@@ -229,6 +227,7 @@ export function DataTable<TData, TValue>({
                     <button
                       type="button"
                       key={column.id}
+                      aria-pressed={column.getIsVisible()}
                       onClick={() =>
                         column.toggleVisibility(!column.getIsVisible())
                       }
@@ -240,12 +239,17 @@ export function DataTable<TData, TValue>({
                       )}
                     >
                       <div className="flex min-w-0 items-center gap-3">
-                        <div className="relative">
-                          <Checkbox
-                            checked={column.getIsVisible()}
-                            className="border-slate-300 data-checked:border-cyan-600 data-checked:bg-cyan-600"
-                          />
-                        </div>
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            "flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors",
+                            column.getIsVisible()
+                              ? "border-cyan-600 bg-cyan-600 text-white"
+                              : "border-slate-300 bg-white text-transparent"
+                          )}
+                        >
+                          <CheckCircle2 className="size-3" />
+                        </span>
                         <span
                           className={cn(
                             "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
